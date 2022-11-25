@@ -821,26 +821,3 @@ end)
 	return GUI
 end
 return Library
-
-local FeatureGame1 = GUI:FeatureNewGame("- Fishing Simulator")
-local Feature1 = GUI:FeatureNewFeature("- Auto Caught Fish (PATCHED)")
-local Feature2 = GUI:FeatureNewFeature("- Auto Kill Killer Whale")
-local Feature3 = GUI:FeatureNewFeature("- Auto Kill Shark")
-local Feature4 = GUI:FeatureNewFeature("- Auto Kill Mobby Wood")
-local Feature5 = GUI:FeatureNewFeature("- Auto Sell")
-local Feature6 = GUI:FeatureNewFeature("- Auto Get Drops")
-local Feature7 = GUI:FeatureNewFeature("- Islands Teleports")
-local Feature8 = GUI:FeatureNewFeature("- Store Teleports")
-local Feature9 = GUI:FeatureNewFeature("- Sea Creatures ESP")
-local Feature10 = GUI:FeatureNewFeature("- Drops ESP")
-local Feature11 = GUI:FeatureNewFeature("- Tp to Boat")
-local Feature12 = GUI:FeatureNewFeature("- Remove Fog")
-local Feature13 = GUI:FeatureNewFeature("- Change Walk Speed")
-local Feature14 = GUI:FeatureNewFeature("- Change Jump Power")
-
-local FeatureGame2 = GUI:FeatureNewGame("- SCP Task Force")
-local Feature15 = GUI:FeatureNewFeature("- Heal")
-local Feature16 = GUI:FeatureNewFeature("- Godmode")
-local Feature17 = GUI:FeatureNewFeature("- Infinite Ammo")
-local Feature18 = GUI:FeatureNewFeature("- Change Walk Speed")
-local Feature19 = GUI:FeatureNewFeature("- Change Jump Power")

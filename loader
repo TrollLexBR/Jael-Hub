@@ -1,0 +1,13 @@
+
+
+local Games = {
+    ["6750059284; 6857661020; 5400959086; 6963580446; 6749046427; 7721287262; 7286283423; 6833971410; 7266535415"] = "Task-Force";
+    ["2866967438"] = "Fishing Simulator";
+}
+
+for PlaceId, Loadstring in pairs(Games) do
+    if PlaceId:find(game.PlaceId) then
+        --print(PlaceId)
+        loadstring(game:HttpGet("https://raw.githubusercontent.com/TrollLexBR/Jael-Hub/main/games/"..Loadstring))();
+    end;
+end;

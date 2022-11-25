@@ -1,1 +1,9 @@
+local Library = loadstring(game:HttpGet("https://raw.githubusercontent.com/TrollLexBR/jaelHub/main/library"))()
 
+local Window = Library:NewWindow("Jael Hub", "Fishing Simulator", "v1.0", "discord.gg/CpA3K467Av")
+
+
+
+local GunTab = Window:NewTab("Gun Mods")
+local LpTab = Window:NewTab("Local Player")
+local MiscTab = Window:NewTab("Misc")

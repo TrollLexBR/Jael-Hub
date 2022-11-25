@@ -1,4 +1,4 @@
-local Library = loadstring(game:HttpGet("https://raw.githubusercontent.com/TrollLexBR/jaelHub/main/library"))()
+local Library = loadstring(game:HttpGet("https://raw.githubusercontent.com/TrollLexBR/Jael-Hub/main/library"))()
 
 local Window = Library:NewWindow("Jael Hub", "Fishing Simulator", "v1.0", "discord.gg/CpA3K467Av")
 

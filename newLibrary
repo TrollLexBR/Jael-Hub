@@ -1624,7 +1624,8 @@ function Library:NewWindow(hubName, gameName, version, discord)
 					local function UpdateColorWithRGB()
 						local color = Color3.fromRGB(Tonumber(RGB.R.Value.Text), Tonumber(RGB.G.Value.Text), Tonumber(RGB.B.Value.Text))
 						ColorPicker["58"]:WaitForChild("ColorPickerIndicator").BackgroundColor3 = color
-						print(Tonumber(RGB.R.Value.Text), Tonumber(RGB.G.Value.Text), Tonumber(RGB.B.Value.Text))
+						--print(Tonumber(RGB.R.Value.Text), Tonumber(RGB.G.Value.Text), Tonumber(RGB.B.Value.Text))
+						callback(Tonumber(RGB.R.Value.Text), Tonumber(RGB.G.Value.Text), Tonumber(RGB.B.Value.Text))
 						return color
 					end
 

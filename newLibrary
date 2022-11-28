@@ -1819,3 +1819,4 @@ function Library:NewWindow(hubName, gameName, version, discord)
 	return GUI
 end
 
+return Library

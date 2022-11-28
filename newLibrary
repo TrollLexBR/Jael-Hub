@@ -1049,7 +1049,7 @@ function Library:NewWindow(hubName, gameName, version, discord)
 				ColorPicker["57"]["TextSize"] = 14;
 				ColorPicker["57"]["TextColor3"] = Color3.fromRGB(255, 255, 255);
 				ColorPicker["57"]["Size"] = UDim2.new(0.8451884388923645, 0, 0, 50);
-				ColorPicker["57"]["Text"] = [[Color Picker]];
+				ColorPicker["57"]["Text"] = label;
 				ColorPicker["57"]["Name"] = [[ColorPickerLabel]];
 				ColorPicker["57"]["Font"] = Enum.Font.Gotham;
 				ColorPicker["57"]["BackgroundTransparency"] = 1;

@@ -50,8 +50,8 @@ function Library:NewWindow(hubName, gameName, version, discord)
 		GUI["2"]["Size"] = UDim2.new(0, 683, 0, 464);
 		GUI["2"]["Position"] = UDim2.new(0.23853209614753723, 0, 0.21358025074005127, 0);
 		GUI["2"]["Name"] = [[MainFrame]];
-		--GUI["2"]["Active"] = true;
-		--GUI["2"]["Draggable"] = true;
+		GUI["2"]["Active"] = true;
+		GUI["2"]["Draggable"] = true;
 
 		UserInputService.InputBegan:Connect(function(Key,Processed)
 			if Processed then return end

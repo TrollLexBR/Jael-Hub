@@ -1909,6 +1909,7 @@ function Library:NewWindow(hubName, gameName, version, discord)
 						key = inputwait.KeyCode.Name
 					else
 						Keybind["85"].Text = "Unknown"
+						key = nil
 					end
 				end)
 

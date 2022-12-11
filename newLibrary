@@ -35,8 +35,8 @@ end
 
 function Library:NewWindow(hubName, gameName, version, discord)
 
-	if CoreGui:FindFirstChild("JaelLibrary") then
-	CoreGui:FindFirstChild("JaelLibrary"):Destroy()
+	if CoreGui:FindFirstChild(LibName) then
+	CoreGui:FindFirstChild(LibName):Destroy()
 	end
 
 	hubName = hubName or "Jael Library"

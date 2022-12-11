@@ -993,13 +993,7 @@ function Library:NewWindow(hubName, gameName, version, discord)
 			end
 			
 			
-			Dropdown["45"].MouseEnter:Connect(function()
-				Library:tween(Dropdown["47"], {["Thickness"] = 1})
-			end)
-
-			Dropdown["45"].MouseLeave:Connect(function()
-				Library:tween(Dropdown["47"], {["Thickness"] = 0})
-			end)
+			
 
 			
 			

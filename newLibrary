@@ -23,10 +23,20 @@ function Library:tween(object, goal, callback)
 	tween:Play()
 end
 
+local LibName = tostring(math.random(1, 100))..tostring(math.random(1,50))..tostring(math.random(1, 100))
+
+function Library:ToggleUI()
+    if game.CoreGui[LibName].Enabled then
+        game.CoreGui[LibName].Enabled = false
+    else
+        game.CoreGui[LibName].Enabled = true
+    end
+end
+
 function Library:NewWindow(hubName, gameName, version, discord)
 
 	if CoreGui:FindFirstChild("JaelLibrary") then
-		CoreGui:FindFirstChild("JaelLibrary"):Destroy()
+	CoreGui:FindFirstChild("JaelLibrary"):Destroy()
 	end
 
 	hubName = hubName or "Jael Library"
@@ -40,7 +50,7 @@ function Library:NewWindow(hubName, gameName, version, discord)
 	do
 		-- StarterGui.JaelLibrary
 		GUI["1"] = Instance.new("ScreenGui", RunService:IsStudio() and game:GetService("Players").LocalPlayer:WaitForChild("PlayerGui") or CoreGui);
-		GUI["1"]["Name"] = "JaelLibrary";
+		GUI["1"]["Name"] = LibName;
 		GUI["1"]["ZIndexBehavior"] = Enum.ZIndexBehavior.Sibling;
 		GUI["1"]["ResetOnSpawn"] = false
 
@@ -52,13 +62,6 @@ function Library:NewWindow(hubName, gameName, version, discord)
 		GUI["2"]["Name"] = [[MainFrame]];
 		GUI["2"]["Active"] = true;
 		GUI["2"]["Draggable"] = true;
-
-		UserInputService.InputBegan:Connect(function(Key,Processed)
-			if Processed then return end
-			if Key.KeyCode == Enum.KeyCode.RightControl then -- Change 'R' to your KeyCode.
-				GUI["2"].Visible = not GUI["2"].Visible
-			end
-		end)
 
 		-- StarterGui.JaelLibrary.MainFrame.Tabs
 		GUI["18"] = Instance.new("Frame", GUI["2"]);
@@ -470,7 +473,7 @@ function Library:NewWindow(hubName, gameName, version, discord)
 				Label["29"]["BackgroundColor3"] = Color3.fromRGB(41, 41, 41);
 				Label["29"]["TextSize"] = 14;
 				Label["29"]["TextColor3"] = Color3.fromRGB(255, 255, 255);
-				Label["29"]["Size"] = UDim2.new(0, 478, 0, 50);
+				Label["29"]["Size"] = UDim2.new(0, 478, 0, 35);
 				Label["29"]["Name"] = [[Label]];
 				Label["29"]["Font"] = Enum.Font.Gotham;
 				Label["29"]["Text"] = label
@@ -1049,7 +1052,7 @@ function Library:NewWindow(hubName, gameName, version, discord)
 				ColorPicker["57"]["TextSize"] = 14;
 				ColorPicker["57"]["TextColor3"] = Color3.fromRGB(255, 255, 255);
 				ColorPicker["57"]["Size"] = UDim2.new(0.8451884388923645, 0, 0, 50);
-				ColorPicker["57"]["Text"] = label;
+				ColorPicker["57"]["Text"] = [[Color Picker]];
 				ColorPicker["57"]["Name"] = [[ColorPickerLabel]];
 				ColorPicker["57"]["Font"] = Enum.Font.Gotham;
 				ColorPicker["57"]["BackgroundTransparency"] = 1;
@@ -1624,8 +1627,7 @@ function Library:NewWindow(hubName, gameName, version, discord)
 					local function UpdateColorWithRGB()
 						local color = Color3.fromRGB(Tonumber(RGB.R.Value.Text), Tonumber(RGB.G.Value.Text), Tonumber(RGB.B.Value.Text))
 						ColorPicker["58"]:WaitForChild("ColorPickerIndicator").BackgroundColor3 = color
-						--print(Tonumber(RGB.R.Value.Text), Tonumber(RGB.G.Value.Text), Tonumber(RGB.B.Value.Text))
-						callback(Tonumber(RGB.R.Value.Text), Tonumber(RGB.G.Value.Text), Tonumber(RGB.B.Value.Text))
+						print(Tonumber(RGB.R.Value.Text), Tonumber(RGB.G.Value.Text), Tonumber(RGB.B.Value.Text))
 						return color
 					end
 
@@ -1813,11 +1815,128 @@ function Library:NewWindow(hubName, gameName, version, discord)
 			return ColorPicker
 		end
 		
+		function Tab:NewBar()
+			
+			local Bar = {}
+			
+			-- StarterGui.JaelLibrary.MainFrame.Tabs.Newtab.TabScrolling.Bar
+			Bar["7e"] = Instance.new("Frame", Tab["26"]);
+			Bar["7e"]["BackgroundColor3"] = Color3.fromRGB(41, 41, 41);
+			Bar["7e"]["Size"] = UDim2.new(0, 478, 0, 7);
+			Bar["7e"]["Name"] = [[Bar]];
+
+			-- StarterGui.JaelLibrary.MainFrame.Tabs.Newtab.TabScrolling.Bar.BarUICorner
+			Bar["7f"] = Instance.new("UICorner", Bar["7e"]);
+			Bar["7f"]["Name"] = [[BarUICorner]];
+			Bar["7f"]["CornerRadius"] = UDim.new(0, 5);
+
+			-- StarterGui.JaelLibrary.MainFrame.Tabs.Newtab.TabScrolling.Bar.UIStroke
+			Bar["80"] = Instance.new("UIStroke", Bar["7e"]);
+			Bar["80"]["Color"] = Color3.fromRGB(102, 5, 172);
+			
+			return Bar
+		end
+
+		function Tab:NewKeybind(label, key, callback)
+			
+			key = key or "Unknow"
+			label = label or "New Keybind"
+			callback = callback or function() end
+			
+			
+			local closeKeys = {
+				Enum.KeyCode.Backspace,Enum.KeyCode.Escape
+			}
+			
+			local blacklistedKeys = { --add or remove keys if you find the need to
+				Enum.KeyCode.Unknown,Enum.KeyCode.W,Enum.KeyCode.A,Enum.KeyCode.S,Enum.KeyCode.D,Enum.KeyCode.Slash,Enum.KeyCode.Tab,Enum.KeyCode.Backspace,Enum.KeyCode.One,Enum.KeyCode.Two,Enum.KeyCode.Three,Enum.KeyCode.Four,Enum.KeyCode.Five,Enum.KeyCode.Six,Enum.KeyCode.Seven,Enum.KeyCode.Eight,Enum.KeyCode.Nine,Enum.KeyCode.Zero,Enum.KeyCode.Escape,Enum.KeyCode.F1,Enum.KeyCode.F2,Enum.KeyCode.F3,Enum.KeyCode.F4,Enum.KeyCode.F5,Enum.KeyCode.F6,Enum.KeyCode.F7,Enum.KeyCode.F8,Enum.KeyCode.F9,Enum.KeyCode.F10,Enum.KeyCode.F11,Enum.KeyCode.F12
+			}
+
+			local whitelistedMouse = { --add or remove mouse inputs if you find the need to
+				Enum.UserInputType.MouseButton1,Enum.UserInputType.MouseButton2,Enum.UserInputType.MouseButton3
+			}
+			
+			local Keybind = {}
+			
+			do
+				-- StarterGui.JaelLibrary.MainFrame.Tabs.Newtab.TabScrolling.Keybind
+				Keybind["81"] = Instance.new("Frame", Tab["26"]);
+				Keybind["81"]["BackgroundColor3"] = Color3.fromRGB(41, 41, 41);
+				Keybind["81"]["Size"] = UDim2.new(0, 478, 0, 50);
+				Keybind["81"]["Name"] = [[Keybind]];
+
+				-- StarterGui.JaelLibrary.MainFrame.Tabs.Newtab.TabScrolling.Keybind.KeybindUICorner
+				Keybind["82"] = Instance.new("UICorner", Keybind["81"]);
+				Keybind["82"]["Name"] = [[KeybindUICorner]];
+				Keybind["82"]["CornerRadius"] = UDim.new(0, 5);
+
+				-- StarterGui.JaelLibrary.MainFrame.Tabs.Newtab.TabScrolling.Keybind.KeybindLabel
+				Keybind["83"] = Instance.new("TextLabel", Keybind["81"]);
+				Keybind["83"]["TextXAlignment"] = Enum.TextXAlignment.Left;
+				Keybind["83"]["BackgroundColor3"] = Color3.fromRGB(41, 41, 41);
+				Keybind["83"]["TextSize"] = 14;
+				Keybind["83"]["TextColor3"] = Color3.fromRGB(255, 255, 255);
+				Keybind["83"]["Size"] = UDim2.new(0.8012552857398987, 0, 1, 0);
+				Keybind["83"]["Text"] = label;
+				Keybind["83"]["Name"] = [[KeybindLabel]];
+				Keybind["83"]["Font"] = Enum.Font.Gotham;
+				Keybind["83"]["BackgroundTransparency"] = 1;
+				Keybind["83"]["Position"] = UDim2.new(0.02301255241036415, 0, 0, 0);
+
+				-- StarterGui.JaelLibrary.MainFrame.Tabs.Newtab.TabScrolling.Keybind.KeybindUIStroke
+				Keybind["84"] = Instance.new("UIStroke", Keybind["81"]);
+				Keybind["84"]["Color"] = Color3.fromRGB(102, 5, 172);
+				Keybind["84"]["Thickness"] = 0;
+				Keybind["84"]["Name"] = [[KeybindUIStroke]];
+
+				-- StarterGui.JaelLibrary.MainFrame.Tabs.Newtab.TabScrolling.Keybind.KeyButton
+				Keybind["85"] = Instance.new("TextButton", Keybind["81"]);
+				Keybind["85"]["TextSize"] = 14;
+				Keybind["85"]["BackgroundColor3"] = Color3.fromRGB(36, 36, 36);
+				Keybind["85"]["TextColor3"] = Color3.fromRGB(255, 255, 255);
+				Keybind["85"]["Size"] = UDim2.new(0, 76, 0, 26);
+				Keybind["85"]["Name"] = [[KeyButton]];
+				Keybind["85"]["Text"] = key;
+				Keybind["85"]["Font"] = Enum.Font.Gotham;
+				Keybind["85"]["Position"] = UDim2.new(0.8240000009536743, 0, 0.23999999463558197, 0);
+				Keybind["85"].MouseButton1Click:Connect(function(input)
+					Keybind["85"].Text = "..."
+				end)
+
+				Keybind["85"].MouseButton1Click:Connect(function()
+					Keybind["85"].Text = "..."
+					local inputwait = game:GetService("UserInputService").InputBegan:wait()
+					if inputwait.KeyCode.Name ~= "Unknown" then
+						Keybind["85"].Text = inputwait.KeyCode.Name
+						key = inputwait.KeyCode.Name
+					else
+						Keybind["85"].Text = "Unknown"
+					end
+				end)
+
+				game:GetService("UserInputService").InputBegan:Connect(function(current, pressed)
+					if not pressed then
+						if current.KeyCode.Name == key then
+							--pcall(callback)
+							callback(key)
+						else
+							
+						end
+					end
+				end
+				)
+
+				-- StarterGui.JaelLibrary.MainFrame.Tabs.Newtab.TabScrolling.Keybind.KeyButton.MainBoxUICorner
+				Keybind["86"] = Instance.new("UICorner", Keybind["85"]);
+				Keybind["86"]["Name"] = [[MainBoxUICorner]];
+				Keybind["86"]["CornerRadius"] = UDim.new(0, 5);
+				
+			end
+			return Keybind
+		end
+
 		return Tab
-
 	end
-
 	return GUI
 end
-
 return Library

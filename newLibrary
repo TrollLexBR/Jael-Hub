@@ -48,7 +48,7 @@ function Library:NewWindow(hubName, gameName, version, discord)
 	do
 		-- StarterGui.JaelLibrary
 		GUI["1"] = Instance.new("ScreenGui", RunService:IsStudio() and game:GetService("Players").LocalPlayer:WaitForChild("PlayerGui") or CoreGui);
-		GUI["1"]["Name"] = ["Jael Library"];
+		GUI["1"]["Name"] = "Jael Library";
 		GUI["1"]["ZIndexBehavior"] = Enum.ZIndexBehavior.Sibling;
 		GUI["1"]["ResetOnSpawn"] = false
 

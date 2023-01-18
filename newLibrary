@@ -847,7 +847,7 @@ function Library:NewWindow(hubName, gameName, version, discord)
 				Dropdown["3c"]["TextSize"] = 14;
 				Dropdown["3c"]["TextColor3"] = Color3.fromRGB(255, 255, 255);
 				Dropdown["3c"]["Size"] = UDim2.new(0.8451884388923645, 0, 0, 50);
-				Dropdown["3c"]["Text"] = [[Dropdown]];
+				Dropdown["3c"]["Text"] = label;
 				Dropdown["3c"]["Name"] = [[DropdownLabel]];
 				Dropdown["3c"]["Font"] = Enum.Font.Gotham;
 				Dropdown["3c"]["BackgroundTransparency"] = 1;

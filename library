@@ -2,7 +2,7 @@ local Library = {}
 
 -- Services
 local UserInputService = game:GetService("UserInputService")
---local CoreGui = game:GetService("CoreGui")
+local CoreGui = game:GetService("CoreGui")
 local RunService = game:GetService("RunService")
 local Players = game:GetService("Players")
 local LocalPlayer = Players.LocalPlayer
@@ -19,17 +19,17 @@ end
 
 
 function Library:ToggleUI()
-	if game.StarterGui["Jael Library"].Enabled then
-		game.StarterGui["Jael Library"].Enabled = false
+	if game.CoreGui["Jael Library"].Enabled then
+		game.CoreGui["Jael Library"].Enabled = false
 	else
-		game.StarterGui["Jael Library"].Enabled = true
+		game.CoreGui["Jael Library"].Enabled = true
 	end
 end
 
 function Library:NewWindow(hubName, gameName, version, discord)
 
-	if StarterGui:FindFirstChild("Jael Library") then
-		StarterGui:FindFirstChild("Jael Library"):Destroy()
+	if CoreGui:FindFirstChild("Jael Library") then
+		CoreGui:FindFirstChild("Jael Library"):Destroy()
 	end
 
 	hubName = hubName or "Jael Library"
@@ -42,7 +42,7 @@ function Library:NewWindow(hubName, gameName, version, discord)
 	-- Render
 	do
 		-- StarterGui.JaelLibrary
-		GUI["1"] = Instance.new("ScreenGui", RunService:IsStudio() and game:GetService("Players").LocalPlayer:WaitForChild("PlayerGui") or CoreGui);
+		GUI["1"] = Instance.new("ScreenGui", CoreGui);
 		GUI["1"]["Name"] = "Jael Library";
 		GUI["1"]["ZIndexBehavior"] = Enum.ZIndexBehavior.Sibling;
 		GUI["1"]["ResetOnSpawn"] = false

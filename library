@@ -2,19 +2,21 @@ local Library = {}
 
 -- Services
 local UserInputService = game:GetService("UserInputService")
+local MouseService = game:GetService("MouseService")
 local TweenService = game:GetService("TweenService")
-local CoreGui = game:GetService("CoreGui")
+--local CoreGui = game:GetService("CoreGui")
 local RunService = game:GetService("RunService")
 local Players = game:GetService("Players")
 local LocalPlayer = Players.LocalPlayer
+local StarterGui = game:GetService("StarterGui")
 
 -- Função GetXY corrigida
 local function GetXY(GuiObject)
-    local mousePos = UserInputService:GetMouseLocation()
-    local Max, May = GuiObject.AbsoluteSize.X, GuiObject.AbsoluteSize.Y
-    local Px, Py = math.clamp(mousePos.X - GuiObject.AbsolutePosition.X, 0, Max), 
-                   math.clamp(mousePos.Y - GuiObject.AbsolutePosition.Y, 0, May)
-    return Px/Max, Py/May
+	local mousePos = MouseService:GetMouseLocation()
+	local Max, May = GuiObject.AbsoluteSize.X, GuiObject.AbsoluteSize.Y
+	local Px, Py = math.clamp(mousePos.X - GuiObject.AbsolutePosition.X, 0, Max), 
+	math.clamp(mousePos.Y - GuiObject.AbsolutePosition.Y, 0, May)
+	return Px/Max, Py/May
 end
 
 local TweenInfo = TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.InOut)
@@ -26,17 +28,17 @@ function Library:tween(object, goal, callback)
 end
 
 function Library:ToggleUI()
-    if game.CoreGui["Jael Library"].Enabled then
-        game.CoreGui["Jael Library"].Enabled = false
-    else
-        game.CoreGui["Jael Library"].Enabled = true
-    end
+	if game.StarterGui["Jael Library"].Enabled then
+		game.StarterGui["Jael Library"].Enabled = false
+	else
+		game.StarterGui["Jael Library"].Enabled = true
+	end
 end
 
 function Library:NewWindow(hubName, gameName, version, discord)
 
-	if CoreGui:FindFirstChild("Jael Library") then
-	CoreGui:FindFirstChild("Jael Library"):Destroy()
+	if StarterGui:FindFirstChild("Jael Library") then
+		StarterGui:FindFirstChild("Jael Library"):Destroy()
 	end
 
 	hubName = hubName or "Jael Library"
@@ -814,19 +816,19 @@ function Library:NewWindow(hubName, gameName, version, discord)
 
 			return Toggle
 		end
-		
+
 		function Tab:NewDropdown(label, itemList, callback)
-			
+
 			label = label or "New Dropdown"
 			itemList = itemList or {}
 			callback = callback or function() end
-			
+
 			local itemNumber = 0
 			local pageSize = 0
 			local dropOpened = false
-			
+
 			local Dropdown = {}
-			
+
 			-- Render
 			do
 				-- StarterGui.JaelLibrary.MainFrame.Tabs.Newtab.TabScrolling.Dropdown
@@ -910,7 +912,7 @@ function Library:NewWindow(hubName, gameName, version, discord)
 				Dropdown["41"]["Visible"] = false;
 				Dropdown["41"]["Name"] = [[DropBTsScroll]];
 
-				
+
 
 				-- StarterGui.JaelLibrary.MainFrame.Tabs.Newtab.TabScrolling.Dropdown.DropBTsScroll.DropBTsScrollUIListLayout
 				Dropdown["48"] = Instance.new("UIListLayout", Dropdown["41"]);
@@ -925,15 +927,15 @@ function Library:NewWindow(hubName, gameName, version, discord)
 				Dropdown["49"]["PaddingRight"] = UDim.new(0, 2);
 				Dropdown["49"]["PaddingBottom"] = UDim.new(0, 2);
 				Dropdown["49"]["PaddingLeft"] = UDim.new(0, 13);
-				
-				
 
-				
+
+
+
 
 				for i, v in next, itemList do
 					itemNumber = itemNumber + 1
 					pageSize = pageSize + 60
-					
+
 					-- StarterGui.JaelLibrary.MainFrame.Tabs.Newtab.TabScrolling.Dropdown.DropBTsScroll.DropButton
 					Dropdown["42"] = Instance.new("Frame", Dropdown["41"]);
 					Dropdown["42"]["BackgroundColor3"] = Color3.fromRGB(41, 41, 41);
@@ -977,12 +979,12 @@ function Library:NewWindow(hubName, gameName, version, discord)
 					Dropdown["47"]["Color"] = Color3.fromRGB(102, 5, 172);
 					Dropdown["47"]["Name"] = [[DropdownButtonUIStroke]];
 					Dropdown["47"]["Thickness"] = 1
-					
+
 					Dropdown["44"].Text = v
 
 					Dropdown["45"].MouseButton1Click:Connect(function()
 						Dropdown["3e"].Text = v
-						
+
 						pcall(callback,v)
 						Library:tween(Dropdown["47"], {["Thickness"] = 3})
 						Library:tween(Dropdown["47"], {["Thickness"] = 1})
@@ -993,13 +995,13 @@ function Library:NewWindow(hubName, gameName, version, discord)
 					end)
 				end
 			end
-			
-			
-			
 
-			
-			
-			
+
+
+
+
+
+
 			Dropdown["3d"].MouseButton1Click:Connect(function()
 				if dropOpened then
 					Library:tween(Dropdown["3a"], {Size = UDim2.new(0, 478, 0, 50)})
@@ -1012,18 +1014,18 @@ function Library:NewWindow(hubName, gameName, version, discord)
 				end
 				dropOpened = not dropOpened
 			end)
-			
-			
-			
+
+
+
 			return Dropdown
 		end
-		
-		
-		
+
+
+
 		function Tab:NewBar()
-			
+
 			local Bar = {}
-			
+
 			-- StarterGui.JaelLibrary.MainFrame.Tabs.Newtab.TabScrolling.Bar
 			Bar["7e"] = Instance.new("Frame", Tab["26"]);
 			Bar["7e"]["BackgroundColor3"] = Color3.fromRGB(41, 41, 41);
@@ -1038,21 +1040,21 @@ function Library:NewWindow(hubName, gameName, version, discord)
 			-- StarterGui.JaelLibrary.MainFrame.Tabs.Newtab.TabScrolling.Bar.UIStroke
 			Bar["80"] = Instance.new("UIStroke", Bar["7e"]);
 			Bar["80"]["Color"] = Color3.fromRGB(102, 5, 172);
-			
+
 			return Bar
 		end
 
 		function Tab:NewKeybind(label, key, callback)
-			
+
 			key = key or "Unknow"
 			label = label or "New Keybind"
 			callback = callback or function() end
-			
-			
+
+
 			local closeKeys = {
 				Enum.KeyCode.Backspace,Enum.KeyCode.Escape
 			}
-			
+
 			local blacklistedKeys = { --add or remove keys if you find the need to
 				Enum.KeyCode.Unknown,Enum.KeyCode.W,Enum.KeyCode.A,Enum.KeyCode.S,Enum.KeyCode.D,Enum.KeyCode.Slash,Enum.KeyCode.Tab,Enum.KeyCode.Backspace,Enum.KeyCode.One,Enum.KeyCode.Two,Enum.KeyCode.Three,Enum.KeyCode.Four,Enum.KeyCode.Five,Enum.KeyCode.Six,Enum.KeyCode.Seven,Enum.KeyCode.Eight,Enum.KeyCode.Nine,Enum.KeyCode.Zero,Enum.KeyCode.Escape,Enum.KeyCode.F1,Enum.KeyCode.F2,Enum.KeyCode.F3,Enum.KeyCode.F4,Enum.KeyCode.F5,Enum.KeyCode.F6,Enum.KeyCode.F7,Enum.KeyCode.F8,Enum.KeyCode.F9,Enum.KeyCode.F10,Enum.KeyCode.F11,Enum.KeyCode.F12
 			}
@@ -1060,9 +1062,9 @@ function Library:NewWindow(hubName, gameName, version, discord)
 			local whitelistedMouse = { --add or remove mouse inputs if you find the need to
 				Enum.UserInputType.MouseButton1,Enum.UserInputType.MouseButton2,Enum.UserInputType.MouseButton3
 			}
-			
+
 			local Keybind = {}
-			
+
 			do
 				-- StarterGui.JaelLibrary.MainFrame.Tabs.Newtab.TabScrolling.Keybind
 				Keybind["81"] = Instance.new("Frame", Tab["26"]);
@@ -1126,7 +1128,7 @@ function Library:NewWindow(hubName, gameName, version, discord)
 							--pcall(callback)
 							callback(key)
 						else
-							
+
 						end
 					end
 				end
@@ -1136,7 +1138,7 @@ function Library:NewWindow(hubName, gameName, version, discord)
 				Keybind["86"] = Instance.new("UICorner", Keybind["85"]);
 				Keybind["86"]["Name"] = [[MainBoxUICorner]];
 				Keybind["86"]["CornerRadius"] = UDim.new(0, 5);
-				
+
 			end
 			return Keybind
 		end

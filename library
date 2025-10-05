@@ -7,7 +7,6 @@ local Players = game:GetService("Players")
 local LocalPlayer = Players.LocalPlayer
 
 -- Variáveis globais
-local Mouse = Players.LocalPlayer:GetMouse()
 local DrawingObjects = {}
 local ActiveWindow = nil
 

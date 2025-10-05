@@ -9,6 +9,9 @@ local LocalPlayer = Players.LocalPlayer
 -- Variáveis globais
 local DrawingObjects = {}
 local ActiveWindow = nil
+local Dragging = false
+local DragStart = nil
+local StartPos = nil
 
 -- Função para criar texto
 local function CreateText(properties)
@@ -21,7 +24,7 @@ local function CreateText(properties)
     text.Center = properties.Center or false
     text.Outline = properties.Outline or false
     text.OutlineColor = properties.OutlineColor or Color3.new(0, 0, 0)
-    text.Font = properties.Font or 2 -- 2 = System font
+    text.Font = properties.Font or 2
     
     return text
 end
@@ -175,64 +178,54 @@ function Library:NewWindow(hubName, gameName, version, discord)
     GUI.FeaturesFrame.Visible = true
     table.insert(DrawingObjects, GUI.FeaturesFrame)
 
-    -- Sistema de drag
-    local dragging = false
-    local dragStart, startPos
-
-    local function update(input)
-        local delta = input.Position - dragStart
-        windowPosition = startPos + delta
-        
-        -- Atualizar todas as posições
-        GUI.MainFrame.Position = windowPosition
-        GUI.SideBar.Position = windowPosition
-        GUI.HubNameLabel.Position = windowPosition + Vector2.new(15, 15)
-        GUI.GameNameLabel.Position = windowPosition + Vector2.new(15, 45)
-        GUI.TopBar.Position = windowPosition + Vector2.new(189, 0)
-        GUI.DiscordLabel.Position = windowPosition + Vector2.new(189 + 350, 15)
-        GUI.VersionLabel.Position = windowPosition + Vector2.new(189 + 400, 15)
-        GUI.HomeButton.Position = windowPosition + Vector2.new(27, 100)
-        GUI.HomeButtonText.Position = windowPosition + Vector2.new(40, 108)
-        GUI.HomeFrame.Position = windowPosition + Vector2.new(189, 41)
-        GUI.WelcomeLabel.Position = windowPosition + Vector2.new(200, 60)
-        GUI.Bar.Position = windowPosition + Vector2.new(195, 90)
-        GUI.FeaturesFrame.Position = windowPosition + Vector2.new(195, 100)
+    -- Sistema de drag global
+    local function updateDrag(input)
+        if Dragging then
+            local delta = input.Position - DragStart
+            windowPosition = StartPos + delta
+            
+            -- Atualizar todas as posições
+            GUI.MainFrame.Position = windowPosition
+            GUI.SideBar.Position = windowPosition
+            GUI.HubNameLabel.Position = windowPosition + Vector2.new(15, 15)
+            GUI.GameNameLabel.Position = windowPosition + Vector2.new(15, 45)
+            GUI.TopBar.Position = windowPosition + Vector2.new(189, 0)
+            GUI.DiscordLabel.Position = windowPosition + Vector2.new(189 + 350, 15)
+            GUI.VersionLabel.Position = windowPosition + Vector2.new(189 + 400, 15)
+            GUI.HomeButton.Position = windowPosition + Vector2.new(27, 100)
+            GUI.HomeButtonText.Position = windowPosition + Vector2.new(40, 108)
+            GUI.HomeFrame.Position = windowPosition + Vector2.new(189, 41)
+            GUI.WelcomeLabel.Position = windowPosition + Vector2.new(200, 60)
+            GUI.Bar.Position = windowPosition + Vector2.new(195, 90)
+            GUI.FeaturesFrame.Position = windowPosition + Vector2.new(195, 100)
+        end
     end
 
-    GUI.TopBarInput = Drawing.new("Square")
-    GUI.TopBarInput.Filled = true
-    GUI.TopBarInput.Color = Color3.fromRGB(255, 255, 255)
-    GUI.TopBarInput.Size = Vector2.new(490, 41)
-    GUI.TopBarInput.Position = windowPosition + Vector2.new(189, 0)
-    GUI.TopBarInput.Visible = false
-    GUI.TopBarInput.Transparency = 0
-    table.insert(DrawingObjects, GUI.TopBarInput)
-
     -- Input handling para drag
-    UserInputService.InputBegan:Connect(function(input)
+    local dragConnection1 = UserInputService.InputBegan:Connect(function(input)
         if input.UserInputType == Enum.UserInputType.MouseButton1 then
             local mousePos = input.Position
-            local topBarPos = GUI.TopBarInput.Position
-            local topBarSize = GUI.TopBarInput.Size
+            local topBarPos = GUI.TopBar.Position
+            local topBarSize = GUI.TopBar.Size
             
             if mousePos.X >= topBarPos.X and mousePos.X <= topBarPos.X + topBarSize.X and
                mousePos.Y >= topBarPos.Y and mousePos.Y <= topBarPos.Y + topBarSize.Y then
-                dragging = true
-                dragStart = input.Position
-                startPos = windowPosition
+                Dragging = true
+                DragStart = input.Position
+                StartPos = windowPosition
             end
         end
     end)
 
-    UserInputService.InputChanged:Connect(function(input)
-        if input.UserInputType == Enum.UserInputType.MouseMovement and dragging then
-            update(input)
+    local dragConnection2 = UserInputService.InputChanged:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseMovement then
+            updateDrag(input)
         end
     end)
 
-    UserInputService.InputEnded:Connect(function(input)
+    local dragConnection3 = UserInputService.InputEnded:Connect(function(input)
         if input.UserInputType == Enum.UserInputType.MouseButton1 then
-            dragging = false
+            Dragging = false
         end
     end)
 
@@ -274,13 +267,15 @@ function Library:NewWindow(hubName, gameName, version, discord)
         tabName = tabName or "New Tab"
         local Tab = {}
         Tab.DrawingObjects = {}
+        Tab.Elements = {}
+        Tab.CurrentY = 10
         
         -- Criar botão da tab
         Tab.Button = Drawing.new("Square")
         Tab.Button.Filled = true
         Tab.Button.Color = Color3.fromRGB(35, 35, 35)
         Tab.Button.Size = Vector2.new(135, 35)
-        Tab.Button.Position = windowPosition + Vector2.new(27, 150)
+        Tab.Button.Position = windowPosition + Vector2.new(27, 150 + (#Tab.Elements * 40))
         Tab.Button.Visible = true
         table.insert(DrawingObjects, Tab.Button)
         table.insert(Tab.DrawingObjects, Tab.Button)
@@ -289,7 +284,7 @@ function Library:NewWindow(hubName, gameName, version, discord)
             Text = tabName,
             Color = Color3.fromRGB(117, 117, 117),
             Size = 14,
-            Position = windowPosition + Vector2.new(40, 158),
+            Position = windowPosition + Vector2.new(40, 158 + (#Tab.Elements * 40)),
             Visible = true
         })
         table.insert(DrawingObjects, Tab.ButtonText)
@@ -305,24 +300,63 @@ function Library:NewWindow(hubName, gameName, version, discord)
         table.insert(DrawingObjects, Tab.Frame)
         table.insert(Tab.DrawingObjects, Tab.Frame)
 
-        -- Sistema para posicionar elementos na tab
-        Tab.CurrentPosition = Vector2.new(5, 5)
+        -- Função para verificar clique em área
+        local function isPointInRectangle(point, rectPos, rectSize)
+            return point.X >= rectPos.X and point.X <= rectPos.X + rectSize.X and
+                   point.Y >= rectPos.Y and point.Y <= rectPos.Y + rectSize.Y
+        end
+
+        -- Sistema de clique para o botão da tab
+        local tabClickConnection = UserInputService.InputBegan:Connect(function(input)
+            if input.UserInputType == Enum.UserInputType.MouseButton1 and ActiveWindow.Visible then
+                local mousePos = input.Position
+                if isPointInRectangle(mousePos, Tab.Button.Position, Tab.Button.Size) then
+                    -- Esconder todas as tabs
+                    for _, otherTab in pairs(GUI.Tabs or {}) do
+                        otherTab.Frame.Visible = false
+                        otherTab.Button.Color = Color3.fromRGB(35, 35, 35)
+                        otherTab.ButtonText.Color = Color3.fromRGB(117, 117, 117)
+                    end
+                    
+                    -- Mostrar esta tab
+                    Tab.Frame.Visible = true
+                    Tab.Button.Color = Color3.fromRGB(102, 5, 172)
+                    Tab.ButtonText.Color = Color3.fromRGB(255, 255, 255)
+                    
+                    -- Mostrar elementos desta tab
+                    for _, element in pairs(Tab.Elements) do
+                        if element.SetVisible then
+                            element:SetVisible(true)
+                        end
+                    end
+                end
+            end
+        end)
+
+        table.insert(Tab.DrawingObjects, {Disconnect = function() tabClickConnection:Disconnect() end})
 
         function Tab:NewLabel(label)
             label = label or "New Label"
             local Label = {}
             
+            local labelY = self.CurrentY
+            self.CurrentY = self.CurrentY + 25
+            
             Label.Text = CreateText({
                 Text = label,
                 Color = Color3.fromRGB(255, 255, 255),
                 Size = 14,
-                Position = self.Frame.Position + self.CurrentPosition,
+                Position = self.Frame.Position + Vector2.new(10, labelY),
                 Visible = self.Frame.Visible
             })
             table.insert(DrawingObjects, Label.Text)
             table.insert(self.DrawingObjects, Label.Text)
             
-            self.CurrentPosition = self.CurrentPosition + Vector2.new(0, 25)
+            function Label:SetVisible(visible)
+                self.Text.Visible = visible
+            end
+            
+            table.insert(self.Elements, Label)
             
             return Label
         end
@@ -332,14 +366,16 @@ function Library:NewWindow(hubName, gameName, version, discord)
             callback = callback or function() end
             
             local Button = {}
-            local buttonSize = Vector2.new(478, 35)
+            local buttonSize = Vector2.new(470, 35)
+            local buttonY = self.CurrentY
+            self.CurrentY = self.CurrentY + buttonSize.Y + 5
             
             -- Background do botão
             Button.Background = Drawing.new("Square")
             Button.Background.Filled = true
             Button.Background.Color = Color3.fromRGB(41, 41, 41)
             Button.Background.Size = buttonSize
-            Button.Background.Position = self.Frame.Position + self.CurrentPosition
+            Button.Background.Position = self.Frame.Position + Vector2.new(10, buttonY)
             Button.Background.Visible = self.Frame.Visible
             table.insert(DrawingObjects, Button.Background)
             table.insert(self.DrawingObjects, Button.Background)
@@ -349,39 +385,35 @@ function Library:NewWindow(hubName, gameName, version, discord)
                 Text = label,
                 Color = Color3.fromRGB(255, 255, 255),
                 Size = 14,
-                Position = self.Frame.Position + self.CurrentPosition + Vector2.new(10, 10),
+                Position = self.Frame.Position + Vector2.new(20, buttonY + 10),
                 Visible = self.Frame.Visible
             })
             table.insert(DrawingObjects, Button.Text)
             table.insert(self.DrawingObjects, Button.Text)
 
-            -- Área clicável (invisível)
-            Button.ClickArea = Drawing.new("Square")
-            Button.ClickArea.Filled = true
-            Button.ClickArea.Color = Color3.fromRGB(255, 255, 255)
-            Button.ClickArea.Size = buttonSize
-            Button.ClickArea.Position = self.Frame.Position + self.CurrentPosition
-            Button.ClickArea.Visible = false
-            Button.ClickArea.Transparency = 0
-            table.insert(DrawingObjects, Button.ClickArea)
-            table.insert(self.DrawingObjects, Button.ClickArea)
-
             -- Evento de clique
-            UserInputService.InputBegan:Connect(function(input)
+            local buttonClickConnection = UserInputService.InputBegan:Connect(function(input)
                 if input.UserInputType == Enum.UserInputType.MouseButton1 and self.Frame.Visible then
                     local mousePos = input.Position
-                    if mousePos.X >= Button.ClickArea.Position.X and mousePos.X <= Button.ClickArea.Position.X + Button.ClickArea.Size.X and
-                       mousePos.Y >= Button.ClickArea.Position.Y and mousePos.Y <= Button.ClickArea.Position.Y + Button.ClickArea.Size.Y then
+                    if isPointInRectangle(mousePos, Button.Background.Position, Button.Background.Size) then
                         callback()
                         -- Feedback visual
+                        local originalColor = Button.Background.Color
                         Button.Background.Color = Color3.fromRGB(102, 5, 172)
-                        wait(0.1)
-                        Button.Background.Color = Color3.fromRGB(41, 41, 41)
+                        delay(0.1, function()
+                            Button.Background.Color = originalColor
+                        end)
                     end
                 end
             end)
 
-            self.CurrentPosition = self.CurrentPosition + Vector2.new(0, buttonSize.Y + 5)
+            function Button:SetVisible(visible)
+                self.Background.Visible = visible
+                self.Text.Visible = visible
+            end
+
+            table.insert(self.DrawingObjects, {Disconnect = function() buttonClickConnection:Disconnect() end})
+            table.insert(self.Elements, Button)
             
             return Button
         end
@@ -399,14 +431,16 @@ function Library:NewWindow(hubName, gameName, version, discord)
                 Max = max
             }
 
-            local sliderSize = Vector2.new(478, 50)
+            local sliderSize = Vector2.new(470, 50)
+            local sliderY = self.CurrentY
+            self.CurrentY = self.CurrentY + sliderSize.Y + 5
             
             -- Background do slider
             Slider.Background = Drawing.new("Square")
             Slider.Background.Filled = true
             Slider.Background.Color = Color3.fromRGB(41, 41, 41)
             Slider.Background.Size = sliderSize
-            Slider.Background.Position = self.Frame.Position + self.CurrentPosition
+            Slider.Background.Position = self.Frame.Position + Vector2.new(10, sliderY)
             Slider.Background.Visible = self.Frame.Visible
             table.insert(DrawingObjects, Slider.Background)
             table.insert(self.DrawingObjects, Slider.Background)
@@ -416,7 +450,7 @@ function Library:NewWindow(hubName, gameName, version, discord)
                 Text = label,
                 Color = Color3.fromRGB(255, 255, 255),
                 Size = 14,
-                Position = self.Frame.Position + self.CurrentPosition + Vector2.new(10, 5),
+                Position = self.Frame.Position + Vector2.new(20, sliderY + 5),
                 Visible = self.Frame.Visible
             })
             table.insert(DrawingObjects, Slider.Label)
@@ -427,7 +461,7 @@ function Library:NewWindow(hubName, gameName, version, discord)
                 Text = tostring(default),
                 Color = Color3.fromRGB(255, 255, 255),
                 Size = 14,
-                Position = self.Frame.Position + self.CurrentPosition + Vector2.new(sliderSize.X - 40, 5),
+                Position = self.Frame.Position + Vector2.new(sliderSize.X - 30, sliderY + 5),
                 Visible = self.Frame.Visible
             })
             table.insert(DrawingObjects, Slider.ValueText)
@@ -437,53 +471,41 @@ function Library:NewWindow(hubName, gameName, version, discord)
             Slider.Track = Drawing.new("Square")
             Slider.Track.Filled = true
             Slider.Track.Color = Color3.fromRGB(36, 36, 36)
-            Slider.Track.Size = Vector2.new(sliderSize.X - 20, 15)
-            Slider.Track.Position = self.Frame.Position + self.CurrentPosition + Vector2.new(10, 25)
+            Slider.Track.Size = Vector2.new(sliderSize.X - 40, 15)
+            Slider.Track.Position = self.Frame.Position + Vector2.new(20, sliderY + 25)
             Slider.Track.Visible = self.Frame.Visible
             table.insert(DrawingObjects, Slider.Track)
             table.insert(self.DrawingObjects, Slider.Track)
 
             -- Progresso do slider
-            local initialProgress = ((default - min) / (max - min)) * (sliderSize.X - 20)
+            local initialProgress = ((default - min) / (max - min)) * (sliderSize.X - 40)
             Slider.Progress = Drawing.new("Square")
             Slider.Progress.Filled = true
             Slider.Progress.Color = Color3.fromRGB(102, 5, 172)
             Slider.Progress.Size = Vector2.new(initialProgress, 15)
-            Slider.Progress.Position = self.Frame.Position + self.CurrentPosition + Vector2.new(10, 25)
+            Slider.Progress.Position = self.Frame.Position + Vector2.new(20, sliderY + 25)
             Slider.Progress.Visible = self.Frame.Visible
             table.insert(DrawingObjects, Slider.Progress)
             table.insert(self.DrawingObjects, Slider.Progress)
-
-            -- Área clicável
-            Slider.ClickArea = Drawing.new("Square")
-            Slider.ClickArea.Filled = true
-            Slider.ClickArea.Color = Color3.fromRGB(255, 255, 255)
-            Slider.ClickArea.Size = Vector2.new(sliderSize.X - 20, 15)
-            Slider.ClickArea.Position = self.Frame.Position + self.CurrentPosition + Vector2.new(10, 25)
-            Slider.ClickArea.Visible = false
-            Slider.ClickArea.Transparency = 0
-            table.insert(DrawingObjects, Slider.ClickArea)
-            table.insert(self.DrawingObjects, Slider.ClickArea)
 
             -- Função para atualizar o slider
             function Slider:SetValue(value)
                 value = math.clamp(value, min, max)
                 self.Value = value
-                local progressWidth = ((value - min) / (max - min)) * (sliderSize.X - 20)
+                local progressWidth = ((value - min) / (max - min)) * (sliderSize.X - 40)
                 self.Progress.Size = Vector2.new(progressWidth, 15)
                 self.ValueText.Text = tostring(math.floor(value))
                 callback(value)
             end
 
             -- Interação
-            local dragging = false
+            local sliderDragging = false
             
-            UserInputService.InputBegan:Connect(function(input)
+            local sliderClickConnection1 = UserInputService.InputBegan:Connect(function(input)
                 if input.UserInputType == Enum.UserInputType.MouseButton1 and self.Frame.Visible then
                     local mousePos = input.Position
-                    if mousePos.X >= Slider.ClickArea.Position.X and mousePos.X <= Slider.ClickArea.Position.X + Slider.ClickArea.Size.X and
-                       mousePos.Y >= Slider.ClickArea.Position.Y and mousePos.Y <= Slider.ClickArea.Position.Y + Slider.ClickArea.Size.Y then
-                        dragging = true
+                    if isPointInRectangle(mousePos, Slider.Track.Position, Slider.Track.Size) then
+                        sliderDragging = true
                         local relativeX = (mousePos.X - Slider.Track.Position.X) / Slider.Track.Size.X
                         local value = min + ((max - min) * math.clamp(relativeX, 0, 1))
                         Slider:SetValue(value)
@@ -491,8 +513,8 @@ function Library:NewWindow(hubName, gameName, version, discord)
                 end
             end)
 
-            UserInputService.InputChanged:Connect(function(input)
-                if dragging and input.UserInputType == Enum.UserInputType.MouseMovement then
+            local sliderClickConnection2 = UserInputService.InputChanged:Connect(function(input)
+                if sliderDragging and input.UserInputType == Enum.UserInputType.MouseMovement then
                     local mousePos = input.Position
                     local relativeX = (mousePos.X - Slider.Track.Position.X) / Slider.Track.Size.X
                     local value = min + ((max - min) * math.clamp(relativeX, 0, 1))
@@ -500,13 +522,28 @@ function Library:NewWindow(hubName, gameName, version, discord)
                 end
             end)
 
-            UserInputService.InputEnded:Connect(function(input)
+            local sliderClickConnection3 = UserInputService.InputEnded:Connect(function(input)
                 if input.UserInputType == Enum.UserInputType.MouseButton1 then
-                    dragging = false
+                    sliderDragging = false
                 end
             end)
 
-            self.CurrentPosition = self.CurrentPosition + Vector2.new(0, sliderSize.Y + 5)
+            function Slider:SetVisible(visible)
+                self.Background.Visible = visible
+                self.Label.Visible = visible
+                self.ValueText.Visible = visible
+                self.Track.Visible = visible
+                self.Progress.Visible = visible
+            end
+
+            table.insert(self.DrawingObjects, {
+                Disconnect = function()
+                    sliderClickConnection1:Disconnect()
+                    sliderClickConnection2:Disconnect()
+                    sliderClickConnection3:Disconnect()
+                end
+            })
+            table.insert(self.Elements, Slider)
             
             return Slider
         end
@@ -517,14 +554,16 @@ function Library:NewWindow(hubName, gameName, version, discord)
             callback = callback or function() end
 
             local Toggle = {}
-            local toggleSize = Vector2.new(478, 35)
+            local toggleSize = Vector2.new(470, 35)
+            local toggleY = self.CurrentY
+            self.CurrentY = self.CurrentY + toggleSize.Y + 5
             
             -- Background do toggle
             Toggle.Background = Drawing.new("Square")
             Toggle.Background.Filled = true
             Toggle.Background.Color = Color3.fromRGB(41, 41, 41)
             Toggle.Background.Size = toggleSize
-            Toggle.Background.Position = self.Frame.Position + self.CurrentPosition
+            Toggle.Background.Position = self.Frame.Position + Vector2.new(10, toggleY)
             Toggle.Background.Visible = self.Frame.Visible
             table.insert(DrawingObjects, Toggle.Background)
             table.insert(self.DrawingObjects, Toggle.Background)
@@ -534,7 +573,7 @@ function Library:NewWindow(hubName, gameName, version, discord)
                 Text = label,
                 Color = Color3.fromRGB(255, 255, 255),
                 Size = 14,
-                Position = self.Frame.Position + self.CurrentPosition + Vector2.new(10, 10),
+                Position = self.Frame.Position + Vector2.new(20, toggleY + 10),
                 Visible = self.Frame.Visible
             })
             table.insert(DrawingObjects, Toggle.Label)
@@ -545,7 +584,7 @@ function Library:NewWindow(hubName, gameName, version, discord)
             Toggle.Switch.Filled = true
             Toggle.Switch.Color = Color3.fromRGB(36, 36, 36)
             Toggle.Switch.Size = Vector2.new(60, 20)
-            Toggle.Switch.Position = self.Frame.Position + self.CurrentPosition + Vector2.new(toggleSize.X - 70, 8)
+            Toggle.Switch.Position = self.Frame.Position + Vector2.new(toggleSize.X - 50, toggleY + 8)
             Toggle.Switch.Visible = self.Frame.Visible
             table.insert(DrawingObjects, Toggle.Switch)
             table.insert(self.DrawingObjects, Toggle.Switch)
@@ -555,65 +594,67 @@ function Library:NewWindow(hubName, gameName, version, discord)
             Toggle.Indicator.Filled = true
             Toggle.Indicator.Color = Color3.fromRGB(255, 81, 81)
             Toggle.Indicator.Size = Vector2.new(25, 20)
-            Toggle.Indicator.Position = self.Frame.Position + self.CurrentPosition + Vector2.new(toggleSize.X - 45, 8)
+            Toggle.Indicator.Position = self.Frame.Position + Vector2.new(toggleSize.X - 25, toggleY + 8)
             Toggle.Indicator.Visible = self.Frame.Visible
             table.insert(DrawingObjects, Toggle.Indicator)
             table.insert(self.DrawingObjects, Toggle.Indicator)
-
-            -- Área clicável
-            Toggle.ClickArea = Drawing.new("Square")
-            Toggle.ClickArea.Filled = true
-            Toggle.ClickArea.Color = Color3.fromRGB(255, 255, 255)
-            Toggle.ClickArea.Size = Vector2.new(60, 20)
-            Toggle.ClickArea.Position = self.Frame.Position + self.CurrentPosition + Vector2.new(toggleSize.X - 70, 8)
-            Toggle.ClickArea.Visible = false
-            Toggle.ClickArea.Transparency = 0
-            table.insert(DrawingObjects, Toggle.ClickArea)
-            table.insert(self.DrawingObjects, Toggle.ClickArea)
 
             -- Função para alternar estado
             function Toggle:SetValue(value)
                 State = value
                 if value then
                     self.Indicator.Color = Color3.fromRGB(2, 255, 108)
-                    self.Indicator.Position = self.Frame.Position + self.CurrentPosition + Vector2.new(toggleSize.X - 70, 8)
+                    self.Indicator.Position = self.Frame.Position + Vector2.new(toggleSize.X - 50, toggleY + 8)
                 else
                     self.Indicator.Color = Color3.fromRGB(255, 81, 81)
-                    self.Indicator.Position = self.Frame.Position + self.CurrentPosition + Vector2.new(toggleSize.X - 45, 8)
+                    self.Indicator.Position = self.Frame.Position + Vector2.new(toggleSize.X - 25, toggleY + 8)
                 end
                 callback(State)
             end
 
             -- Evento de clique
-            UserInputService.InputBegan:Connect(function(input)
+            local toggleClickConnection = UserInputService.InputBegan:Connect(function(input)
                 if input.UserInputType == Enum.UserInputType.MouseButton1 and self.Frame.Visible then
                     local mousePos = input.Position
-                    if mousePos.X >= Toggle.ClickArea.Position.X and mousePos.X <= Toggle.ClickArea.Position.X + Toggle.ClickArea.Size.X and
-                       mousePos.Y >= Toggle.ClickArea.Position.Y and mousePos.Y <= Toggle.ClickArea.Position.Y + Toggle.ClickArea.Size.Y then
+                    if isPointInRectangle(mousePos, Toggle.Switch.Position, Toggle.Switch.Size) then
                         Toggle:SetValue(not State)
                     end
                 end
             end)
 
-            self.CurrentPosition = self.CurrentPosition + Vector2.new(0, toggleSize.Y + 5)
+            function Toggle:SetVisible(visible)
+                self.Background.Visible = visible
+                self.Label.Visible = visible
+                self.Switch.Visible = visible
+                self.Indicator.Visible = visible
+            end
+
+            table.insert(self.DrawingObjects, {Disconnect = function() toggleClickConnection:Disconnect() end})
+            table.insert(self.Elements, Toggle)
             
             return Toggle
         end
 
         function Tab:NewBar()
             local Bar = {}
-            local barSize = Vector2.new(478, 2)
+            local barSize = Vector2.new(470, 2)
+            local barY = self.CurrentY
+            self.CurrentY = self.CurrentY + barSize.Y + 5
             
             Bar.Line = Drawing.new("Square")
             Bar.Line.Filled = true
             Bar.Line.Color = Color3.fromRGB(102, 5, 172)
             Bar.Line.Size = barSize
-            Bar.Line.Position = self.Frame.Position + self.CurrentPosition
+            Bar.Line.Position = self.Frame.Position + Vector2.new(10, barY)
             Bar.Line.Visible = self.Frame.Visible
             table.insert(DrawingObjects, Bar.Line)
             table.insert(self.DrawingObjects, Bar.Line)
 
-            self.CurrentPosition = self.CurrentPosition + Vector2.new(0, barSize.Y + 5)
+            function Bar:SetVisible(visible)
+                self.Line.Visible = visible
+            end
+
+            table.insert(self.Elements, Bar)
             
             return Bar
         end
@@ -625,14 +666,16 @@ function Library:NewWindow(hubName, gameName, version, discord)
 
             local listening = false
             local Keybind = {}
-            local keybindSize = Vector2.new(478, 35)
+            local keybindSize = Vector2.new(470, 35)
+            local keybindY = self.CurrentY
+            self.CurrentY = self.CurrentY + keybindSize.Y + 5
             
             -- Background do keybind
             Keybind.Background = Drawing.new("Square")
             Keybind.Background.Filled = true
             Keybind.Background.Color = Color3.fromRGB(41, 41, 41)
             Keybind.Background.Size = keybindSize
-            Keybind.Background.Position = self.Frame.Position + self.CurrentPosition
+            Keybind.Background.Position = self.Frame.Position + Vector2.new(10, keybindY)
             Keybind.Background.Visible = self.Frame.Visible
             table.insert(DrawingObjects, Keybind.Background)
             table.insert(self.DrawingObjects, Keybind.Background)
@@ -642,7 +685,7 @@ function Library:NewWindow(hubName, gameName, version, discord)
                 Text = label,
                 Color = Color3.fromRGB(255, 255, 255),
                 Size = 14,
-                Position = self.Frame.Position + self.CurrentPosition + Vector2.new(10, 10),
+                Position = self.Frame.Position + Vector2.new(20, keybindY + 10),
                 Visible = self.Frame.Visible
             })
             table.insert(DrawingObjects, Keybind.Label)
@@ -653,7 +696,7 @@ function Library:NewWindow(hubName, gameName, version, discord)
             Keybind.KeyButton.Filled = true
             Keybind.KeyButton.Color = Color3.fromRGB(36, 36, 36)
             Keybind.KeyButton.Size = Vector2.new(80, 20)
-            Keybind.KeyButton.Position = self.Frame.Position + self.CurrentPosition + Vector2.new(keybindSize.X - 90, 8)
+            Keybind.KeyButton.Position = self.Frame.Position + Vector2.new(keybindSize.X - 70, keybindY + 8)
             Keybind.KeyButton.Visible = self.Frame.Visible
             table.insert(DrawingObjects, Keybind.KeyButton)
             table.insert(self.DrawingObjects, Keybind.KeyButton)
@@ -663,22 +706,11 @@ function Library:NewWindow(hubName, gameName, version, discord)
                 Text = key,
                 Color = Color3.fromRGB(255, 255, 255),
                 Size = 12,
-                Position = self.Frame.Position + self.CurrentPosition + Vector2.new(keybindSize.X - 85, 12),
+                Position = self.Frame.Position + Vector2.new(keybindSize.X - 65, keybindY + 12),
                 Visible = self.Frame.Visible
             })
             table.insert(DrawingObjects, Keybind.KeyText)
             table.insert(self.DrawingObjects, Keybind.KeyText)
-
-            -- Área clicável
-            Keybind.ClickArea = Drawing.new("Square")
-            Keybind.ClickArea.Filled = true
-            Keybind.ClickArea.Color = Color3.fromRGB(255, 255, 255)
-            Keybind.ClickArea.Size = Vector2.new(80, 20)
-            Keybind.ClickArea.Position = self.Frame.Position + self.CurrentPosition + Vector2.new(keybindSize.X - 90, 8)
-            Keybind.ClickArea.Visible = false
-            Keybind.ClickArea.Transparency = 0
-            table.insert(DrawingObjects, Keybind.ClickArea)
-            table.insert(self.DrawingObjects, Keybind.ClickArea)
 
             -- Função para iniciar escuta
             function Keybind:StartListening()
@@ -699,18 +731,17 @@ function Library:NewWindow(hubName, gameName, version, discord)
             end
 
             -- Evento de clique no botão
-            UserInputService.InputBegan:Connect(function(input)
+            local keybindClickConnection = UserInputService.InputBegan:Connect(function(input)
                 if input.UserInputType == Enum.UserInputType.MouseButton1 and self.Frame.Visible then
                     local mousePos = input.Position
-                    if mousePos.X >= Keybind.ClickArea.Position.X and mousePos.X <= Keybind.ClickArea.Position.X + Keybind.ClickArea.Size.X and
-                       mousePos.Y >= Keybind.ClickArea.Position.Y and mousePos.Y <= Keybind.ClickArea.Position.Y + Keybind.ClickArea.Size.Y then
+                    if isPointInRectangle(mousePos, Keybind.KeyButton.Position, Keybind.KeyButton.Size) then
                         Keybind:StartListening()
                     end
                 end
             end)
 
             -- Evento de captura de tecla
-            UserInputService.InputBegan:Connect(function(input)
+            local keybindKeyConnection = UserInputService.InputBegan:Connect(function(input)
                 if listening then
                     if input.UserInputType == Enum.UserInputType.Keyboard then
                         Keybind:StopListening(input.KeyCode.Name)
@@ -729,41 +760,23 @@ function Library:NewWindow(hubName, gameName, version, discord)
                 end
             end)
 
-            self.CurrentPosition = self.CurrentPosition + Vector2.new(0, keybindSize.Y + 5)
+            function Keybind:SetVisible(visible)
+                self.Background.Visible = visible
+                self.Label.Visible = visible
+                self.KeyButton.Visible = visible
+                self.KeyText.Visible = visible
+            end
+
+            table.insert(self.DrawingObjects, {
+                Disconnect = function()
+                    keybindClickConnection:Disconnect()
+                    keybindKeyConnection:Disconnect()
+                end
+            })
+            table.insert(self.Elements, Keybind)
             
             return Keybind
         end
-
-        -- Evento para mostrar/ocultar a tab
-        Tab.Button.ClickArea = Drawing.new("Square")
-        Tab.Button.ClickArea.Filled = true
-        Tab.Button.ClickArea.Color = Color3.fromRGB(255, 255, 255)
-        Tab.Button.ClickArea.Size = Vector2.new(135, 35)
-        Tab.Button.ClickArea.Position = windowPosition + Vector2.new(27, 150)
-        Tab.Button.ClickArea.Visible = false
-        Tab.Button.ClickArea.Transparency = 0
-        table.insert(DrawingObjects, Tab.Button.ClickArea)
-        table.insert(Tab.DrawingObjects, Tab.Button.ClickArea)
-
-        UserInputService.InputBegan:Connect(function(input)
-            if input.UserInputType == Enum.UserInputType.MouseButton1 then
-                local mousePos = input.Position
-                if mousePos.X >= Tab.Button.ClickArea.Position.X and mousePos.X <= Tab.Button.ClickArea.Position.X + Tab.Button.ClickArea.Size.X and
-                   mousePos.Y >= Tab.Button.ClickArea.Position.Y and mousePos.Y <= Tab.Button.ClickArea.Position.Y + Tab.Button.ClickArea.Size.Y then
-                    -- Esconder todas as tabs
-                    for i, v in pairs(GUI.Tabs or {}) do
-                        v.Frame.Visible = false
-                        v.Button.Color = Color3.fromRGB(35, 35, 35)
-                        v.ButtonText.Color = Color3.fromRGB(117, 117, 117)
-                    end
-                    
-                    -- Mostrar esta tab
-                    Tab.Frame.Visible = true
-                    Tab.Button.Color = Color3.fromRGB(102, 5, 172)
-                    Tab.ButtonText.Color = Color3.fromRGB(255, 255, 255)
-                end
-            end
-        end)
 
         -- Adicionar à lista de tabs
         GUI.Tabs = GUI.Tabs or {}

@@ -10,34 +10,6 @@ local LocalPlayer = Players.LocalPlayer
 local DrawingObjects = {}
 local ActiveWindow = nil
 
--- Função GetXY para Drawing
-local function GetXY(position, absolutePosition, absoluteSize)
-    local mousePos = UserInputService:GetMouseLocation()
-    local Px, Py = math.clamp(mousePos.X - absolutePosition.X, 0, absoluteSize.X), 
-                   math.clamp(mousePos.Y - absolutePosition.Y, 0, absoluteSize.Y)
-    return Px/absoluteSize.X, Py/absoluteSize.Y
-end
-
--- Função para criar retângulos arredondados (simulação)
-local function CreateRoundedFrame(properties)
-    local frame = Drawing.new("Square")
-    frame.Filled = properties.Filled or true
-    frame.Color = properties.Color or Color3.new(1, 1, 1)
-    frame.Size = properties.Size or Vector2.new(100, 100)
-    frame.Position = properties.Position or Vector2.new(0, 0)
-    frame.Visible = properties.Visible or true
-    frame.Thickness = properties.Thickness or 1
-    
-    -- Simulação de cantos arredondados usando múltiplos quadrados
-    local corners = {}
-    if properties.Rounded then
-        -- Esta é uma simulação básica - para cantos arredondados reais seria mais complexo
-        frame.Rounding = properties.Rounding or 5
-    end
-    
-    return frame, corners
-end
-
 -- Função para criar texto
 local function CreateText(properties)
     local text = Drawing.new("Text")
@@ -205,7 +177,7 @@ function Library:NewWindow(hubName, gameName, version, discord)
 
     -- Sistema de drag
     local dragging = false
-    local dragInput, dragStart, startPos
+    local dragStart, startPos
 
     local function update(input)
         local delta = input.Position - dragStart
@@ -239,7 +211,7 @@ function Library:NewWindow(hubName, gameName, version, discord)
     -- Input handling para drag
     UserInputService.InputBegan:Connect(function(input)
         if input.UserInputType == Enum.UserInputType.MouseButton1 then
-            local mousePos = UserInputService:GetMouseLocation()
+            local mousePos = input.Position
             local topBarPos = GUI.TopBarInput.Position
             local topBarSize = GUI.TopBarInput.Size
             
@@ -248,12 +220,6 @@ function Library:NewWindow(hubName, gameName, version, discord)
                 dragging = true
                 dragStart = input.Position
                 startPos = windowPosition
-                
-                input.Changed:Connect(function()
-                    if input.UserInputState == Enum.UserInputState.End then
-                        dragging = false
-                    end
-                end)
             end
         end
     end)
@@ -264,52 +230,101 @@ function Library:NewWindow(hubName, gameName, version, discord)
         end
     end)
 
+    UserInputService.InputEnded:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 then
+            dragging = false
+        end
+    end)
+
     ActiveWindow = GUI.MainFrame
 
     function GUI:FeatureNewGame(gameName)
         gameName = gameName or "- New Game"
-        -- Implementação similar para features...
+        local NewGame = {}
+        
+        NewGame.Text = CreateText({
+            Text = gameName,
+            Color = Color3.fromRGB(255, 255, 255),
+            Size = 16,
+            Position = GUI.FeaturesFrame.Position + Vector2.new(10, 10),
+            Visible = true
+        })
+        table.insert(DrawingObjects, NewGame.Text)
+        
+        return NewGame
     end
 
     function GUI:FeatureNewFeature(featureLabel)
         featureLabel = featureLabel or "- New Feature"
-        -- Implementação similar para features...
+        local feature = {}
+        
+        feature.Text = CreateText({
+            Text = featureLabel,
+            Color = Color3.fromRGB(255, 255, 255),
+            Size = 14,
+            Position = GUI.FeaturesFrame.Position + Vector2.new(20, 30),
+            Visible = true
+        })
+        table.insert(DrawingObjects, feature.Text)
+        
+        return feature
     end
 
     function GUI:NewTab(tabName)
         tabName = tabName or "New Tab"
         local Tab = {}
+        Tab.DrawingObjects = {}
         
         -- Criar botão da tab
-        local tabButton = Drawing.new("Square")
-        tabButton.Filled = true
-        tabButton.Color = Color3.fromRGB(35, 35, 35)
-        tabButton.Size = Vector2.new(135, 35)
-        tabButton.Position = windowPosition + Vector2.new(27, 150)
-        tabButton.Visible = true
-        table.insert(DrawingObjects, tabButton)
+        Tab.Button = Drawing.new("Square")
+        Tab.Button.Filled = true
+        Tab.Button.Color = Color3.fromRGB(35, 35, 35)
+        Tab.Button.Size = Vector2.new(135, 35)
+        Tab.Button.Position = windowPosition + Vector2.new(27, 150)
+        Tab.Button.Visible = true
+        table.insert(DrawingObjects, Tab.Button)
+        table.insert(Tab.DrawingObjects, Tab.Button)
 
-        local tabButtonText = CreateText({
+        Tab.ButtonText = CreateText({
             Text = tabName,
             Color = Color3.fromRGB(117, 117, 117),
             Size = 14,
             Position = windowPosition + Vector2.new(40, 158),
             Visible = true
         })
-        table.insert(DrawingObjects, tabButtonText)
+        table.insert(DrawingObjects, Tab.ButtonText)
+        table.insert(Tab.DrawingObjects, Tab.ButtonText)
 
         -- Tab Frame
-        local tabFrame = Drawing.new("Square")
-        tabFrame.Filled = true
-        tabFrame.Color = Color3.fromRGB(36, 36, 36)
-        tabFrame.Size = Vector2.new(490, 419)
-        tabFrame.Position = windowPosition + Vector2.new(189, 41)
-        tabFrame.Visible = false
-        table.insert(DrawingObjects, tabFrame)
+        Tab.Frame = Drawing.new("Square")
+        Tab.Frame.Filled = true
+        Tab.Frame.Color = Color3.fromRGB(36, 36, 36)
+        Tab.Frame.Size = Vector2.new(490, 419)
+        Tab.Frame.Position = windowPosition + Vector2.new(189, 41)
+        Tab.Frame.Visible = false
+        table.insert(DrawingObjects, Tab.Frame)
+        table.insert(Tab.DrawingObjects, Tab.Frame)
+
+        -- Sistema para posicionar elementos na tab
+        Tab.CurrentPosition = Vector2.new(5, 5)
 
         function Tab:NewLabel(label)
             label = label or "New Label"
-            -- Implementação para labels...
+            local Label = {}
+            
+            Label.Text = CreateText({
+                Text = label,
+                Color = Color3.fromRGB(255, 255, 255),
+                Size = 14,
+                Position = self.Frame.Position + self.CurrentPosition,
+                Visible = self.Frame.Visible
+            })
+            table.insert(DrawingObjects, Label.Text)
+            table.insert(self.DrawingObjects, Label.Text)
+            
+            self.CurrentPosition = self.CurrentPosition + Vector2.new(0, 25)
+            
+            return Label
         end
 
         function Tab:NewButton(label, callback)
@@ -317,457 +332,442 @@ function Library:NewWindow(hubName, gameName, version, discord)
             callback = callback or function() end
             
             local Button = {}
+            local buttonSize = Vector2.new(478, 35)
             
-            -- Implementação básica para botão com Drawing
-            local buttonFrame = Drawing.new("Square")
-            buttonFrame.Filled = true
-            buttonFrame.Color = Color3.fromRGB(41, 41, 41)
-            buttonFrame.Size = Vector2.new(478, 50)
-            buttonFrame.Position = Vector2.new(0, 0) -- Posição será calculada
-            buttonFrame.Visible = true
-            
-            local buttonText = CreateText({
+            -- Background do botão
+            Button.Background = Drawing.new("Square")
+            Button.Background.Filled = true
+            Button.Background.Color = Color3.fromRGB(41, 41, 41)
+            Button.Background.Size = buttonSize
+            Button.Background.Position = self.Frame.Position + self.CurrentPosition
+            Button.Background.Visible = self.Frame.Visible
+            table.insert(DrawingObjects, Button.Background)
+            table.insert(self.DrawingObjects, Button.Background)
+
+            -- Texto do botão
+            Button.Text = CreateText({
                 Text = label,
                 Color = Color3.fromRGB(255, 255, 255),
                 Size = 14,
-                Position = Vector2.new(0, 0),
-                Visible = true
+                Position = self.Frame.Position + self.CurrentPosition + Vector2.new(10, 10),
+                Visible = self.Frame.Visible
             })
-            
-            -- Sistema de clique básico
-            local buttonInput = Drawing.new("Square")
-            buttonInput.Filled = true
-            buttonInput.Color = Color3.fromRGB(255, 255, 255)
-            buttonInput.Size = Vector2.new(478, 50)
-            buttonInput.Position = Vector2.new(0, 0)
-            buttonInput.Visible = false
-            buttonInput.Transparency = 0
-            
-            table.insert(DrawingObjects, buttonFrame)
-            table.insert(DrawingObjects, buttonText)
-            table.insert(DrawingObjects, buttonInput)
+            table.insert(DrawingObjects, Button.Text)
+            table.insert(self.DrawingObjects, Button.Text)
+
+            -- Área clicável (invisível)
+            Button.ClickArea = Drawing.new("Square")
+            Button.ClickArea.Filled = true
+            Button.ClickArea.Color = Color3.fromRGB(255, 255, 255)
+            Button.ClickArea.Size = buttonSize
+            Button.ClickArea.Position = self.Frame.Position + self.CurrentPosition
+            Button.ClickArea.Visible = false
+            Button.ClickArea.Transparency = 0
+            table.insert(DrawingObjects, Button.ClickArea)
+            table.insert(self.DrawingObjects, Button.ClickArea)
+
+            -- Evento de clique
+            UserInputService.InputBegan:Connect(function(input)
+                if input.UserInputType == Enum.UserInputType.MouseButton1 and self.Frame.Visible then
+                    local mousePos = input.Position
+                    if mousePos.X >= Button.ClickArea.Position.X and mousePos.X <= Button.ClickArea.Position.X + Button.ClickArea.Size.X and
+                       mousePos.Y >= Button.ClickArea.Position.Y and mousePos.Y <= Button.ClickArea.Position.Y + Button.ClickArea.Size.Y then
+                        callback()
+                        -- Feedback visual
+                        Button.Background.Color = Color3.fromRGB(102, 5, 172)
+                        wait(0.1)
+                        Button.Background.Color = Color3.fromRGB(41, 41, 41)
+                    end
+                end
+            end)
+
+            self.CurrentPosition = self.CurrentPosition + Vector2.new(0, buttonSize.Y + 5)
             
             return Button
         end
 
         function Tab:NewSlider(label, min, max, default, callback)
-			label = label or "New Slider"
-			min = min or 0
-			max = max or 100
-			default = default or 50
-			callback = callback or function() end
+            label = label or "New Slider"
+            min = min or 0
+            max = max or 100
+            default = default or 50
+            callback = callback or function() end
 
-			local slider = {
-				Value = default,
-				Min = min,
-				Max = max,
-				Callback = callback
-			}
+            local Slider = {
+                Value = default,
+                Min = min,
+                Max = max
+            }
 
-			-- Calcula a posição do slider (assumindo que a Tab tem uma propriedade para armazenar a posição atual)
-			local position = self.CurrentPosition or Vector2.new(0, 0)
-			local size = Vector2.new(478, 50) -- Tamanho do slider
+            local sliderSize = Vector2.new(478, 50)
+            
+            -- Background do slider
+            Slider.Background = Drawing.new("Square")
+            Slider.Background.Filled = true
+            Slider.Background.Color = Color3.fromRGB(41, 41, 41)
+            Slider.Background.Size = sliderSize
+            Slider.Background.Position = self.Frame.Position + self.CurrentPosition
+            Slider.Background.Visible = self.Frame.Visible
+            table.insert(DrawingObjects, Slider.Background)
+            table.insert(self.DrawingObjects, Slider.Background)
 
-			-- Fundo do slider
-			local background = Drawing.new("Square")
-			background.Filled = true
-			background.Color = Color3.fromRGB(41, 41, 41)
-			background.Size = size
-			background.Position = position
-			background.Visible = true
+            -- Label do slider
+            Slider.Label = CreateText({
+                Text = label,
+                Color = Color3.fromRGB(255, 255, 255),
+                Size = 14,
+                Position = self.Frame.Position + self.CurrentPosition + Vector2.new(10, 5),
+                Visible = self.Frame.Visible
+            })
+            table.insert(DrawingObjects, Slider.Label)
+            table.insert(self.DrawingObjects, Slider.Label)
 
-			-- Texto do label
-			local labelText = Drawing.new("Text")
-			labelText.Text = label
-			labelText.Color = Color3.fromRGB(255, 255, 255)
-			labelText.Size = 14
-			labelText.Position = position + Vector2.new(10, 10)
-			labelText.Visible = true
+            -- Valor atual
+            Slider.ValueText = CreateText({
+                Text = tostring(default),
+                Color = Color3.fromRGB(255, 255, 255),
+                Size = 14,
+                Position = self.Frame.Position + self.CurrentPosition + Vector2.new(sliderSize.X - 40, 5),
+                Visible = self.Frame.Visible
+            })
+            table.insert(DrawingObjects, Slider.ValueText)
+            table.insert(self.DrawingObjects, Slider.ValueText)
 
-			-- Texto do valor
-			local valueText = Drawing.new("Text")
-			valueText.Text = tostring(default)
-			valueText.Color = Color3.fromRGB(255, 255, 255)
-			valueText.Size = 14
-			valueText.Position = position + Vector2.new(size.X - 40, 10)
-			valueText.Visible = true
+            -- Track do slider
+            Slider.Track = Drawing.new("Square")
+            Slider.Track.Filled = true
+            Slider.Track.Color = Color3.fromRGB(36, 36, 36)
+            Slider.Track.Size = Vector2.new(sliderSize.X - 20, 15)
+            Slider.Track.Position = self.Frame.Position + self.CurrentPosition + Vector2.new(10, 25)
+            Slider.Track.Visible = self.Frame.Visible
+            table.insert(DrawingObjects, Slider.Track)
+            table.insert(self.DrawingObjects, Slider.Track)
 
-			-- Barra de progresso (fundo)
-			local progressBackground = Drawing.new("Square")
-			progressBackground.Filled = true
-			progressBackground.Color = Color3.fromRGB(36, 36, 36)
-			progressBackground.Size = Vector2.new(size.X - 20, 10)
-			progressBackground.Position = position + Vector2.new(10, 30)
-			progressBackground.Visible = true
+            -- Progresso do slider
+            local initialProgress = ((default - min) / (max - min)) * (sliderSize.X - 20)
+            Slider.Progress = Drawing.new("Square")
+            Slider.Progress.Filled = true
+            Slider.Progress.Color = Color3.fromRGB(102, 5, 172)
+            Slider.Progress.Size = Vector2.new(initialProgress, 15)
+            Slider.Progress.Position = self.Frame.Position + self.CurrentPosition + Vector2.new(10, 25)
+            Slider.Progress.Visible = self.Frame.Visible
+            table.insert(DrawingObjects, Slider.Progress)
+            table.insert(self.DrawingObjects, Slider.Progress)
 
-			-- Barra de progresso (preenchimento)
-			local progress = Drawing.new("Square")
-			progress.Filled = true
-			progress.Color = Color3.fromRGB(102, 5, 172)
-			progress.Size = Vector2.new((default - min) / (max - min) * (size.X - 20), 10)
-			progress.Position = position + Vector2.new(10, 30)
-			progress.Visible = true
+            -- Área clicável
+            Slider.ClickArea = Drawing.new("Square")
+            Slider.ClickArea.Filled = true
+            Slider.ClickArea.Color = Color3.fromRGB(255, 255, 255)
+            Slider.ClickArea.Size = Vector2.new(sliderSize.X - 20, 15)
+            Slider.ClickArea.Position = self.Frame.Position + self.CurrentPosition + Vector2.new(10, 25)
+            Slider.ClickArea.Visible = false
+            Slider.ClickArea.Transparency = 0
+            table.insert(DrawingObjects, Slider.ClickArea)
+            table.insert(self.DrawingObjects, Slider.ClickArea)
 
-			-- Atualiza a posição atual para o próximo elemento
-			self.CurrentPosition = position + Vector2.new(0, size.Y + 5)
+            -- Função para atualizar o slider
+            function Slider:SetValue(value)
+                value = math.clamp(value, min, max)
+                self.Value = value
+                local progressWidth = ((value - min) / (max - min)) * (sliderSize.X - 20)
+                self.Progress.Size = Vector2.new(progressWidth, 15)
+                self.ValueText.Text = tostring(math.floor(value))
+                callback(value)
+            end
 
-			-- Função para atualizar o slider
-			function slider:SetValue(value)
-				value = math.clamp(value, min, max)
-				self.Value = value
-				valueText.Text = tostring(value)
-				progress.Size = Vector2.new((value - min) / (max - min) * (size.X - 20), 10)
-				callback(value)
-			end
+            -- Interação
+            local dragging = false
+            
+            UserInputService.InputBegan:Connect(function(input)
+                if input.UserInputType == Enum.UserInputType.MouseButton1 and self.Frame.Visible then
+                    local mousePos = input.Position
+                    if mousePos.X >= Slider.ClickArea.Position.X and mousePos.X <= Slider.ClickArea.Position.X + Slider.ClickArea.Size.X and
+                       mousePos.Y >= Slider.ClickArea.Position.Y and mousePos.Y <= Slider.ClickArea.Position.Y + Slider.ClickArea.Size.Y then
+                        dragging = true
+                        local relativeX = (mousePos.X - Slider.Track.Position.X) / Slider.Track.Size.X
+                        local value = min + ((max - min) * math.clamp(relativeX, 0, 1))
+                        Slider:SetValue(value)
+                    end
+                end
+            end)
 
-			-- Interatividade
-			local dragging = false
+            UserInputService.InputChanged:Connect(function(input)
+                if dragging and input.UserInputType == Enum.UserInputType.MouseMovement then
+                    local mousePos = input.Position
+                    local relativeX = (mousePos.X - Slider.Track.Position.X) / Slider.Track.Size.X
+                    local value = min + ((max - min) * math.clamp(relativeX, 0, 1))
+                    Slider:SetValue(math.floor(value))
+                end
+            end)
 
-			-- Função para atualizar o slider baseado na posição do mouse
-			local function updateSlider(input)
-				local relativeX = input.Position.X - progressBackground.Position.X
-				local value = min + (relativeX / progressBackground.Size.X) * (max - min)
-				slider:SetValue(value)
-			end
+            UserInputService.InputEnded:Connect(function(input)
+                if input.UserInputType == Enum.UserInputType.MouseButton1 then
+                    dragging = false
+                end
+            end)
 
-			-- Conectar eventos de mouse
-			UserInputService.InputBegan:Connect(function(input)
-				if input.UserInputType == Enum.UserInputType.MouseButton1 then
-					local mousePos = UserInputService:GetMouseLocation()
-					if mousePos.X >= progressBackground.Position.X and mousePos.X <= progressBackground.Position.X + progressBackground.Size.X and
-					mousePos.Y >= progressBackground.Position.Y and mousePos.Y <= progressBackground.Position.Y + progressBackground.Size.Y then
-						dragging = true
-						updateSlider(input)
-					end
-				end
-			end)
-
-			UserInputService.InputChanged:Connect(function(input)
-				if dragging and input.UserInputType == Enum.UserInputType.MouseMovement then
-					updateSlider(input)
-				end
-			end)
-
-			UserInputService.InputEnded:Connect(function(input)
-				if input.UserInputType == Enum.UserInputType.MouseButton1 then
-					dragging = false
-				end
-			end)
-
-			-- Armazenar os objetos para remover depois
-			table.insert(self.DrawingObjects, background)
-			table.insert(self.DrawingObjects, labelText)
-			table.insert(self.DrawingObjects, valueText)
-			table.insert(self.DrawingObjects, progressBackground)
-			table.insert(self.DrawingObjects, progress)
-
-			return slider
-		end
+            self.CurrentPosition = self.CurrentPosition + Vector2.new(0, sliderSize.Y + 5)
+            
+            return Slider
+        end
 
         function Tab:NewToggle(label, callback)
-			label = label or "New Toggle"
-			callback = callback or function() end
+            local State = false
+            label = label or "New Toggle"
+            callback = callback or function() end
 
-			local toggle = {
-				Value = false,
-				Callback = callback
-			}
+            local Toggle = {}
+            local toggleSize = Vector2.new(478, 35)
+            
+            -- Background do toggle
+            Toggle.Background = Drawing.new("Square")
+            Toggle.Background.Filled = true
+            Toggle.Background.Color = Color3.fromRGB(41, 41, 41)
+            Toggle.Background.Size = toggleSize
+            Toggle.Background.Position = self.Frame.Position + self.CurrentPosition
+            Toggle.Background.Visible = self.Frame.Visible
+            table.insert(DrawingObjects, Toggle.Background)
+            table.insert(self.DrawingObjects, Toggle.Background)
 
-			local position = self.CurrentPosition or Vector2.new(0, 0)
-			local size = Vector2.new(478, 30)
+            -- Label do toggle
+            Toggle.Label = CreateText({
+                Text = label,
+                Color = Color3.fromRGB(255, 255, 255),
+                Size = 14,
+                Position = self.Frame.Position + self.CurrentPosition + Vector2.new(10, 10),
+                Visible = self.Frame.Visible
+            })
+            table.insert(DrawingObjects, Toggle.Label)
+            table.insert(self.DrawingObjects, Toggle.Label)
 
-			-- Fundo do toggle
-			local background = Drawing.new("Square")
-			background.Filled = true
-			background.Color = Color3.fromRGB(41, 41, 41)
-			background.Size = size
-			background.Position = position
-			background.Visible = true
+            -- Toggle switch
+            Toggle.Switch = Drawing.new("Square")
+            Toggle.Switch.Filled = true
+            Toggle.Switch.Color = Color3.fromRGB(36, 36, 36)
+            Toggle.Switch.Size = Vector2.new(60, 20)
+            Toggle.Switch.Position = self.Frame.Position + self.CurrentPosition + Vector2.new(toggleSize.X - 70, 8)
+            Toggle.Switch.Visible = self.Frame.Visible
+            table.insert(DrawingObjects, Toggle.Switch)
+            table.insert(self.DrawingObjects, Toggle.Switch)
 
-			-- Texto do label
-			local labelText = Drawing.new("Text")
-			labelText.Text = label
-			labelText.Color = Color3.fromRGB(255, 255, 255)
-			labelText.Size = 14
-			labelText.Position = position + Vector2.new(10, 8)
-			labelText.Visible = true
+            -- Toggle indicator
+            Toggle.Indicator = Drawing.new("Square")
+            Toggle.Indicator.Filled = true
+            Toggle.Indicator.Color = Color3.fromRGB(255, 81, 81)
+            Toggle.Indicator.Size = Vector2.new(25, 20)
+            Toggle.Indicator.Position = self.Frame.Position + self.CurrentPosition + Vector2.new(toggleSize.X - 45, 8)
+            Toggle.Indicator.Visible = self.Frame.Visible
+            table.insert(DrawingObjects, Toggle.Indicator)
+            table.insert(self.DrawingObjects, Toggle.Indicator)
 
-			-- Toggle button
-			local toggleButton = Drawing.new("Square")
-			toggleButton.Filled = true
-			toggleButton.Color = Color3.fromRGB(36, 36, 36)
-			toggleButton.Size = Vector2.new(50, 20)
-			toggleButton.Position = position + Vector2.new(size.X - 60, 5)
-			toggleButton.Visible = true
+            -- Área clicável
+            Toggle.ClickArea = Drawing.new("Square")
+            Toggle.ClickArea.Filled = true
+            Toggle.ClickArea.Color = Color3.fromRGB(255, 255, 255)
+            Toggle.ClickArea.Size = Vector2.new(60, 20)
+            Toggle.ClickArea.Position = self.Frame.Position + self.CurrentPosition + Vector2.new(toggleSize.X - 70, 8)
+            Toggle.ClickArea.Visible = false
+            Toggle.ClickArea.Transparency = 0
+            table.insert(DrawingObjects, Toggle.ClickArea)
+            table.insert(self.DrawingObjects, Toggle.ClickArea)
 
-			-- Toggle indicator
-			local indicator = Drawing.new("Square")
-			indicator.Filled = true
-			indicator.Color = Color3.fromRGB(255, 81, 81)
-			indicator.Size = Vector2.new(20, 20)
-			indicator.Position = position + Vector2.new(size.X - 60, 5)
-			indicator.Visible = true
+            -- Função para alternar estado
+            function Toggle:SetValue(value)
+                State = value
+                if value then
+                    self.Indicator.Color = Color3.fromRGB(2, 255, 108)
+                    self.Indicator.Position = self.Frame.Position + self.CurrentPosition + Vector2.new(toggleSize.X - 70, 8)
+                else
+                    self.Indicator.Color = Color3.fromRGB(255, 81, 81)
+                    self.Indicator.Position = self.Frame.Position + self.CurrentPosition + Vector2.new(toggleSize.X - 45, 8)
+                end
+                callback(State)
+            end
 
-			self.CurrentPosition = position + Vector2.new(0, size.Y + 5)
+            -- Evento de clique
+            UserInputService.InputBegan:Connect(function(input)
+                if input.UserInputType == Enum.UserInputType.MouseButton1 and self.Frame.Visible then
+                    local mousePos = input.Position
+                    if mousePos.X >= Toggle.ClickArea.Position.X and mousePos.X <= Toggle.ClickArea.Position.X + Toggle.ClickArea.Size.X and
+                       mousePos.Y >= Toggle.ClickArea.Position.Y and mousePos.Y <= Toggle.ClickArea.Position.Y + Toggle.ClickArea.Size.Y then
+                        Toggle:SetValue(not State)
+                    end
+                end
+            end)
 
-			function toggle:SetValue(value)
-				self.Value = value
-				if value then
-					indicator.Color = Color3.fromRGB(2, 255, 108)
-					indicator.Position = position + Vector2.new(size.X - 40, 5)
-				else
-					indicator.Color = Color3.fromRGB(255, 81, 81)
-					indicator.Position = position + Vector2.new(size.X - 60, 5)
-				end
-				callback(value)
-			end
-
-			-- Interatividade
-			local function toggleValue()
-				toggle:SetValue(not toggle.Value)
-			end
-
-			-- Clique no toggle button
-			UserInputService.InputBegan:Connect(function(input)
-				if input.UserInputType == Enum.UserInputType.MouseButton1 then
-					local mousePos = UserInputService:GetMouseLocation()
-					if mousePos.X >= toggleButton.Position.X and mousePos.X <= toggleButton.Position.X + toggleButton.Size.X and
-					mousePos.Y >= toggleButton.Position.Y and mousePos.Y <= toggleButton.Position.Y + toggleButton.Size.Y then
-						toggleValue()
-					end
-				end
-			end)
-
-			table.insert(self.DrawingObjects, background)
-			table.insert(self.DrawingObjects, labelText)
-			table.insert(self.DrawingObjects, toggleButton)
-			table.insert(self.DrawingObjects, indicator)
-
-			return toggle
-		end
-
-        function Tab:NewDropdown(label, itemList, callback)
-			label = label or "New Dropdown"
-			itemList = itemList or {}
-			callback = callback or function() end
-
-			local dropdown = {
-				Value = nil,
-				Items = itemList,
-				Callback = callback,
-				Open = false
-			}
-
-			local position = self.CurrentPosition or Vector2.new(0, 0)
-			local size = Vector2.new(478, 30)
-
-			-- Fundo do dropdown
-			local background = Drawing.new("Square")
-			background.Filled = true
-			background.Color = Color3.fromRGB(41, 41, 41)
-			background.Size = size
-			background.Position = position
-			background.Visible = true
-
-			-- Texto do label
-			local labelText = Drawing.new("Text")
-			labelText.Text = label
-			labelText.Color = Color3.fromRGB(255, 255, 255)
-			labelText.Size = 14
-			labelText.Position = position + Vector2.new(10, 8)
-			labelText.Visible = true
-
-			-- Texto do valor selecionado
-			local valueText = Drawing.new("Text")
-			valueText.Text = "None"
-			valueText.Color = Color3.fromRGB(255, 255, 255)
-			valueText.Size = 14
-			valueText.Position = position + Vector2.new(size.X - 100, 8)
-			valueText.Visible = true
-
-			-- Seta do dropdown
-			local arrow = Drawing.new("Text")
-			arrow.Text = "v"
-			arrow.Color = Color3.fromRGB(255, 255, 255)
-			arrow.Size = 14
-			arrow.Position = position + Vector2.new(size.X - 20, 8)
-			arrow.Visible = true
-
-			-- Lista de itens (inicialmente invisível)
-			local itemFrames = {}
-			local itemTexts = {}
-
-			local function toggleDropdown()
-				dropdown.Open = not dropdown.Open
-				for _, frame in ipairs(itemFrames) do
-					frame.Visible = dropdown.Open
-				end
-				for _, text in ipairs(itemTexts) do
-					text.Visible = dropdown.Open
-				end
-			end
-
-			local function selectItem(item)
-				dropdown.Value = item
-				valueText.Text = item
-				callback(item)
-				toggleDropdown() -- Fecha o dropdown após seleção
-			end
-
-			-- Criar itens do dropdown
-			for i, item in ipairs(itemList) do
-				local itemPosition = position + Vector2.new(0, size.Y * i)
-				local itemBackground = Drawing.new("Square")
-				itemBackground.Filled = true
-				itemBackground.Color = Color3.fromRGB(41, 41, 41)
-				itemBackground.Size = size
-				itemBackground.Position = itemPosition
-				itemBackground.Visible = false
-
-				local itemText = Drawing.new("Text")
-				itemText.Text = item
-				itemText.Color = Color3.fromRGB(255, 255, 255)
-				itemText.Size = 14
-				itemText.Position = itemPosition + Vector2.new(10, 8)
-				itemText.Visible = false
-
-				table.insert(itemFrames, itemBackground)
-				table.insert(itemTexts, itemText)
-
-				-- Interatividade para o item
-				UserInputService.InputBegan:Connect(function(input)
-					if input.UserInputType == Enum.UserInputType.MouseButton1 and dropdown.Open then
-						local mousePos = UserInputService:GetMouseLocation()
-						if mousePos.X >= itemBackground.Position.X and mousePos.X <= itemBackground.Position.X + itemBackground.Size.X and
-						mousePos.Y >= itemBackground.Position.Y and mousePos.Y <= itemBackground.Position.Y + itemBackground.Size.Y then
-							selectItem(item)
-						end
-					end
-				end)
-			end
-
-			-- Interatividade para o dropdown
-			UserInputService.InputBegan:Connect(function(input)
-				if input.UserInputType == Enum.UserInputType.MouseButton1 then
-					local mousePos = UserInputService:GetMouseLocation()
-					if mousePos.X >= background.Position.X and mousePos.X <= background.Position.X + background.Size.X and
-					mousePos.Y >= background.Position.Y and mousePos.Y <= background.Position.Y + background.Size.Y then
-						toggleDropdown()
-					end
-				end
-			end)
-
-			self.CurrentPosition = position + Vector2.new(0, size.Y + 5)
-
-			table.insert(self.DrawingObjects, background)
-			table.insert(self.DrawingObjects, labelText)
-			table.insert(self.DrawingObjects, valueText)
-			table.insert(self.DrawingObjects, arrow)
-			for _, frame in ipairs(itemFrames) do
-				table.insert(self.DrawingObjects, frame)
-			end
-			for _, text in ipairs(itemTexts) do
-				table.insert(self.DrawingObjects, text)
-			end
-
-			return dropdown
-		end
+            self.CurrentPosition = self.CurrentPosition + Vector2.new(0, toggleSize.Y + 5)
+            
+            return Toggle
+        end
 
         function Tab:NewBar()
-			local position = self.CurrentPosition or Vector2.new(0, 0)
-			local size = Vector2.new(478, 5)
+            local Bar = {}
+            local barSize = Vector2.new(478, 2)
+            
+            Bar.Line = Drawing.new("Square")
+            Bar.Line.Filled = true
+            Bar.Line.Color = Color3.fromRGB(102, 5, 172)
+            Bar.Line.Size = barSize
+            Bar.Line.Position = self.Frame.Position + self.CurrentPosition
+            Bar.Line.Visible = self.Frame.Visible
+            table.insert(DrawingObjects, Bar.Line)
+            table.insert(self.DrawingObjects, Bar.Line)
 
-			local bar = Drawing.new("Square")
-			bar.Filled = true
-			bar.Color = Color3.fromRGB(102, 5, 172)
-			bar.Size = size
-			bar.Position = position
-			bar.Visible = true
-
-			self.CurrentPosition = position + Vector2.new(0, size.Y + 5)
-
-			table.insert(self.DrawingObjects, bar)
-
-			return bar
-		end
+            self.CurrentPosition = self.CurrentPosition + Vector2.new(0, barSize.Y + 5)
+            
+            return Bar
+        end
 
         function Tab:NewKeybind(label, key, callback)
-			label = label or "New Keybind"
-			key = key or "None"
-			callback = callback or function() end
+            key = key or "None"
+            label = label or "New Keybind"
+            callback = callback or function() end
 
-			local keybind = {
-				Value = key,
-				Callback = callback
-			}
+            local listening = false
+            local Keybind = {}
+            local keybindSize = Vector2.new(478, 35)
+            
+            -- Background do keybind
+            Keybind.Background = Drawing.new("Square")
+            Keybind.Background.Filled = true
+            Keybind.Background.Color = Color3.fromRGB(41, 41, 41)
+            Keybind.Background.Size = keybindSize
+            Keybind.Background.Position = self.Frame.Position + self.CurrentPosition
+            Keybind.Background.Visible = self.Frame.Visible
+            table.insert(DrawingObjects, Keybind.Background)
+            table.insert(self.DrawingObjects, Keybind.Background)
 
-			local position = self.CurrentPosition or Vector2.new(0, 0)
-			local size = Vector2.new(478, 30)
+            -- Label do keybind
+            Keybind.Label = CreateText({
+                Text = label,
+                Color = Color3.fromRGB(255, 255, 255),
+                Size = 14,
+                Position = self.Frame.Position + self.CurrentPosition + Vector2.new(10, 10),
+                Visible = self.Frame.Visible
+            })
+            table.insert(DrawingObjects, Keybind.Label)
+            table.insert(self.DrawingObjects, Keybind.Label)
 
-			-- Fundo do keybind
-			local background = Drawing.new("Square")
-			background.Filled = true
-			background.Color = Color3.fromRGB(41, 41, 41)
-			background.Size = size
-			background.Position = position
-			background.Visible = true
+            -- Botão do keybind
+            Keybind.KeyButton = Drawing.new("Square")
+            Keybind.KeyButton.Filled = true
+            Keybind.KeyButton.Color = Color3.fromRGB(36, 36, 36)
+            Keybind.KeyButton.Size = Vector2.new(80, 20)
+            Keybind.KeyButton.Position = self.Frame.Position + self.CurrentPosition + Vector2.new(keybindSize.X - 90, 8)
+            Keybind.KeyButton.Visible = self.Frame.Visible
+            table.insert(DrawingObjects, Keybind.KeyButton)
+            table.insert(self.DrawingObjects, Keybind.KeyButton)
 
-			-- Texto do label
-			local labelText = Drawing.new("Text")
-			labelText.Text = label
-			labelText.Color = Color3.fromRGB(255, 255, 255)
-			labelText.Size = 14
-			labelText.Position = position + Vector2.new(10, 8)
-			labelText.Visible = true
+            -- Texto da tecla
+            Keybind.KeyText = CreateText({
+                Text = key,
+                Color = Color3.fromRGB(255, 255, 255),
+                Size = 12,
+                Position = self.Frame.Position + self.CurrentPosition + Vector2.new(keybindSize.X - 85, 12),
+                Visible = self.Frame.Visible
+            })
+            table.insert(DrawingObjects, Keybind.KeyText)
+            table.insert(self.DrawingObjects, Keybind.KeyText)
 
-			-- Texto da tecla
-			local keyText = Drawing.new("Text")
-			keyText.Text = key
-			keyText.Color = Color3.fromRGB(255, 255, 255)
-			keyText.Size = 14
-			keyText.Position = position + Vector2.new(size.X - 50, 8)
-			keyText.Visible = true
+            -- Área clicável
+            Keybind.ClickArea = Drawing.new("Square")
+            Keybind.ClickArea.Filled = true
+            Keybind.ClickArea.Color = Color3.fromRGB(255, 255, 255)
+            Keybind.ClickArea.Size = Vector2.new(80, 20)
+            Keybind.ClickArea.Position = self.Frame.Position + self.CurrentPosition + Vector2.new(keybindSize.X - 90, 8)
+            Keybind.ClickArea.Visible = false
+            Keybind.ClickArea.Transparency = 0
+            table.insert(DrawingObjects, Keybind.ClickArea)
+            table.insert(self.DrawingObjects, Keybind.ClickArea)
 
-			self.CurrentPosition = position + Vector2.new(0, size.Y + 5)
+            -- Função para iniciar escuta
+            function Keybind:StartListening()
+                listening = true
+                self.KeyText.Text = "..."
+                self.KeyButton.Color = Color3.fromRGB(102, 5, 172)
+            end
 
-			-- Modo de edição
-			local editing = false
+            -- Função para parar escuta
+            function Keybind:StopListening(newKey)
+                listening = false
+                self.KeyText.Text = newKey or key
+                self.KeyButton.Color = Color3.fromRGB(36, 36, 36)
+                if newKey then
+                    key = newKey
+                    callback(newKey)
+                end
+            end
 
-			local function setKey(newKey)
-				keybind.Value = newKey
-				keyText.Text = newKey
-				editing = false
-			end
+            -- Evento de clique no botão
+            UserInputService.InputBegan:Connect(function(input)
+                if input.UserInputType == Enum.UserInputType.MouseButton1 and self.Frame.Visible then
+                    local mousePos = input.Position
+                    if mousePos.X >= Keybind.ClickArea.Position.X and mousePos.X <= Keybind.ClickArea.Position.X + Keybind.ClickArea.Size.X and
+                       mousePos.Y >= Keybind.ClickArea.Position.Y and mousePos.Y <= Keybind.ClickArea.Position.Y + Keybind.ClickArea.Size.Y then
+                        Keybind:StartListening()
+                    end
+                end
+            end)
 
-			UserInputService.InputBegan:Connect(function(input)
-				if editing then
-					if input.UserInputType == Enum.UserInputType.Keyboard then
-						setKey(input.KeyCode.Name)
-					elseif input.UserInputType == Enum.UserInputType.MouseButton1 then
-						setKey("MouseButton1")
-					elseif input.UserInputType == Enum.UserInputType.MouseButton2 then
-						setKey("MouseButton2")
-					elseif input.UserInputType == Enum.UserInputType.MouseButton3 then
-						setKey("MouseButton3")
-					end
-				else
-					if input.UserInputType == Enum.UserInputType.MouseButton1 then
-						local mousePos = UserInputService:GetMouseLocation()
-						if mousePos.X >= keyText.Position.X and mousePos.X <= keyText.Position.X + 50 and
-						mousePos.Y >= keyText.Position.Y and mousePos.Y <= keyText.Position.Y + 20 then
-							editing = true
-							keyText.Text = "..."
-						end
-					end
-				end
-			end)
+            -- Evento de captura de tecla
+            UserInputService.InputBegan:Connect(function(input)
+                if listening then
+                    if input.UserInputType == Enum.UserInputType.Keyboard then
+                        Keybind:StopListening(input.KeyCode.Name)
+                    elseif input.UserInputType == Enum.UserInputType.MouseButton1 then
+                        Keybind:StopListening("MouseButton1")
+                    elseif input.UserInputType == Enum.UserInputType.MouseButton2 then
+                        Keybind:StopListening("MouseButton2")
+                    elseif input.UserInputType == Enum.UserInputType.MouseButton3 then
+                        Keybind:StopListening("MouseButton3")
+                    end
+                else
+                    -- Executar callback quando a tecla é pressionada
+                    if input.UserInputType == Enum.UserInputType.Keyboard and input.KeyCode.Name == key then
+                        callback(key)
+                    end
+                end
+            end)
 
-			table.insert(self.DrawingObjects, background)
-			table.insert(self.DrawingObjects, labelText)
-			table.insert(self.DrawingObjects, keyText)
+            self.CurrentPosition = self.CurrentPosition + Vector2.new(0, keybindSize.Y + 5)
+            
+            return Keybind
+        end
 
-			return keybind
-		end
+        -- Evento para mostrar/ocultar a tab
+        Tab.Button.ClickArea = Drawing.new("Square")
+        Tab.Button.ClickArea.Filled = true
+        Tab.Button.ClickArea.Color = Color3.fromRGB(255, 255, 255)
+        Tab.Button.ClickArea.Size = Vector2.new(135, 35)
+        Tab.Button.ClickArea.Position = windowPosition + Vector2.new(27, 150)
+        Tab.Button.ClickArea.Visible = false
+        Tab.Button.ClickArea.Transparency = 0
+        table.insert(DrawingObjects, Tab.Button.ClickArea)
+        table.insert(Tab.DrawingObjects, Tab.Button.ClickArea)
+
+        UserInputService.InputBegan:Connect(function(input)
+            if input.UserInputType == Enum.UserInputType.MouseButton1 then
+                local mousePos = input.Position
+                if mousePos.X >= Tab.Button.ClickArea.Position.X and mousePos.X <= Tab.Button.ClickArea.Position.X + Tab.Button.ClickArea.Size.X and
+                   mousePos.Y >= Tab.Button.ClickArea.Position.Y and mousePos.Y <= Tab.Button.ClickArea.Position.Y + Tab.Button.ClickArea.Size.Y then
+                    -- Esconder todas as tabs
+                    for i, v in pairs(GUI.Tabs or {}) do
+                        v.Frame.Visible = false
+                        v.Button.Color = Color3.fromRGB(35, 35, 35)
+                        v.ButtonText.Color = Color3.fromRGB(117, 117, 117)
+                    end
+                    
+                    -- Mostrar esta tab
+                    Tab.Frame.Visible = true
+                    Tab.Button.Color = Color3.fromRGB(102, 5, 172)
+                    Tab.ButtonText.Color = Color3.fromRGB(255, 255, 255)
+                end
+            end
+        end)
+
+        -- Adicionar à lista de tabs
+        GUI.Tabs = GUI.Tabs or {}
+        table.insert(GUI.Tabs, Tab)
 
         return Tab
     end

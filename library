@@ -2,7 +2,6 @@ local Library = {}
 
 -- Services
 local UserInputService = game:GetService("UserInputService")
-local MouseService = game:GetService("MouseService")
 local TweenService = game:GetService("TweenService")
 local CoreGui = game:GetService("CoreGui")
 local RunService = game:GetService("RunService")
@@ -11,7 +10,7 @@ local LocalPlayer = Players.LocalPlayer
 
 -- Função GetXY corrigida
 local function GetXY(GuiObject)
-    local mousePos = MouseService:GetMouseLocation()
+    local mousePos = UserInputService:GetMouseLocation()
     local Max, May = GuiObject.AbsoluteSize.X, GuiObject.AbsoluteSize.Y
     local Px, Py = math.clamp(mousePos.X - GuiObject.AbsolutePosition.X, 0, Max), 
                    math.clamp(mousePos.Y - GuiObject.AbsolutePosition.Y, 0, May)

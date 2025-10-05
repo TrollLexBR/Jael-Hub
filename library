@@ -7,12 +7,14 @@ local CoreGui = game:GetService("CoreGui")
 local RunService = game:GetService("RunService")
 local Players = game:GetService("Players")
 local LocalPlayer = Players.LocalPlayer
-local Mouse = LocalPlayer:GetMouse()
 
+-- Função GetXY corrigida
 local function GetXY(GuiObject)
-	local Max, May = GuiObject.AbsoluteSize.X, GuiObject.AbsoluteSize.Y
-	local Px, Py = math.clamp(Mouse.X - GuiObject.AbsolutePosition.X, 0, Max), math.clamp(Mouse.Y - GuiObject.AbsolutePosition.Y, 0, May)
-	return Px/Max, Py/May
+    local mousePos = UserInputService:GetMouseLocation()
+    local Max, May = GuiObject.AbsoluteSize.X, GuiObject.AbsoluteSize.Y
+    local Px, Py = math.clamp(mousePos.X - GuiObject.AbsolutePosition.X, 0, Max), 
+                   math.clamp(mousePos.Y - GuiObject.AbsolutePosition.Y, 0, May)
+    return Px/Max, Py/May
 end
 
 local TweenInfo = TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.InOut)

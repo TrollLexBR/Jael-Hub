@@ -1,4 +1,19 @@
-local animalList = {"RuffedGrouse", "Coyote", "WhiteTailedDeerFemale", "RuffedGrouseLeucistic", "RedFox", "GrizzlyBear", "FemaleGoose", "MaleGoose", "WhiteTailedDeerMale", "SpottedHyena", "BlueWildebeest", "PlainsZebra", "MaleLion", "FemaleLion"}
+local animalList = {
+    "RuffedGrouse", 
+    "Coyote", 
+    "WhiteTailedDeerFemale", 
+    "RuffedGrouseLeucistic", 
+    "RedFox", 
+    "GrizzlyBear", 
+    "FemaleMoose", 
+    "MaleMoose", 
+    "WhiteTailedDeerMale", 
+    "SpottedHyena", 
+    "BlueWildebeest", 
+    "PlainsZebra", 
+    "MaleLion", 
+    "FemaleLion"
+}
 
 local animalsFolder = workspace:FindFirstChild("Animals")
 local animalDrawings = {}
@@ -7,20 +22,20 @@ local animalDrawings = {}
 ---------- ESP LIST
 
 local selectedAnimals = {
-    ["RuffedGrouse"] = true,
-    ["Coyote"] = true,
-    ["WhiteTailedDeerFemale"] = true,
-    ["RuffedGrouseLeucistic"] = true,
-    ["RedFox"] = true,
-    ["GrizzlyBear"] = true,
-    ["FemaleGoose"] = true,
-    ["MaleGoose"] = true,
-    ["WhiteTailedDeerMale"] = true,
-    ["SpottedHyena"] = true,
-    ["BlueWildebeest"] = true,
-    ["PlainsZebra"] = true,
-    ["MaleLion"] = true,
-    ["FemaleLion"] = true
+    ["RuffedGrouse"] = false,
+    ["Coyote"] = false,
+    ["WhiteTailedDeerFemale"] = false,
+    ["RuffedGrouseLeucistic"] = false,
+    ["RedFox"] = false,
+    ["GrizzlyBear"] = false,
+    ["FemaleMoose"] = true,
+    ["MaleMoose"] = false,
+    ["WhiteTailedDeerMale"] = false,
+    ["SpottedHyena"] = false,
+    ["BlueWildebeest"] = false,
+    ["PlainsZebra"] = false,
+    ["MaleLion"] = false,
+    ["FemaleLion"] = false
 }
 
 ------------------------

@@ -880,7 +880,7 @@ function Library:Create(options)
     self.title = CreateDrawing("Text", {
         Text = self.Name,
         Size = CONFIG.TEXT_SIZE.TITLE,
-        Font = 31,
+        Font = 3,
         Center = true,
         Color = CONFIG.COLORS.TEXT_DEFAULT,
         ZIndex = CONFIG.ZINDEX.PANEL + 2

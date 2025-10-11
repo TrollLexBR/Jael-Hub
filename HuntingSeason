@@ -1,0 +1,150 @@
+local animalList = {"RuffedGrouse", "Coyote", "WhiteTailedDeerFemale", "RuffedGrouseLeucistic", "RedFox", "GrizzlyBear", "FemaleGoose", "MaleGoose", "WhiteTailedDeerMale", "SpottedHyena", "BlueWildebeest", "PlainsZebra", "MaleLion", "FemaleLion"}
+
+local animalsFolder = workspace:FindFirstChild("Animals")
+local animalDrawings = {}
+
+------------------------
+---------- ESP LIST
+
+local selectedAnimals = {
+    ["RuffedGrouse"] = true,
+    ["Coyote"] = true,
+    ["WhiteTailedDeerFemale"] = true,
+    ["RuffedGrouseLeucistic"] = true,
+    ["RedFox"] = true,
+    ["GrizzlyBear"] = true,
+    ["FemaleGoose"] = true,
+    ["MaleGoose"] = true,
+    ["WhiteTailedDeerMale"] = true,
+    ["SpottedHyena"] = true,
+    ["BlueWildebeest"] = true,
+    ["PlainsZebra"] = true,
+    ["MaleLion"] = true,
+    ["FemaleLion"] = true
+}
+
+------------------------
+
+local function createAnimalESP(animalModel)
+    if animalDrawings[animalModel] then
+        return
+    end
+    
+    local drawings = {
+        box = Drawing.new("Square"),
+        name = Drawing.new("Text"),
+        hp = Drawing.new("Line")
+    }
+    
+    drawings.box.Color = Color3.fromRGB(0, 255, 0)
+    drawings.box.Thickness = 2
+    drawings.box.Filled = false
+    drawings.box.ZIndex = 1
+    
+    drawings.name.Color = Color3.fromRGB(0, 255, 0)
+    drawings.name.Size = 14
+    drawings.name.ZIndex = 2
+    drawings.name.Text = animalModel.Name
+    
+    drawings.hp.Color = Color3.fromRGB(0, 255, 0)
+    drawings.hp.Thickness = 2
+    drawings.hp.ZIndex = 1
+    
+    animalDrawings[animalModel] = {
+        drawings = drawings,
+        humanoid = animalModel:FindFirstChild("Humanoid")
+    }
+end
+
+local function removeAnimalESP(animalModel)
+    if animalDrawings[animalModel] then
+        for _, drawing in pairs(animalDrawings[animalModel].drawings) do
+            drawing:Remove()
+        end
+        animalDrawings[animalModel] = nil
+    end
+end
+
+local function updateESP()
+    local cam = workspace.CurrentCamera
+    if not cam then return end
+    
+    for animalModel, data in pairs(animalDrawings) do
+        local rootPart = animalModel:FindFirstChild("HumanoidRootPart") or animalModel:FindFirstChildOfClass("Part")
+        
+        if not animalModel.Parent or not rootPart or (data.humanoid and data.humanoid.Health <= 0) then
+            removeAnimalESP(animalModel)
+        else
+            local screenPos, onScreen = cam:WorldToScreenPoint(rootPart.Position)
+            
+            if onScreen then
+                local size = rootPart.Size
+                local offset = Vector3.new(size.X, size.Y, 0)
+                local topLeft = cam:WorldToScreenPoint(rootPart.Position + offset)
+                local bottomRight = cam:WorldToScreenPoint(rootPart.Position - offset)
+                
+                local boxWidth = math.abs(bottomRight.X - topLeft.X)
+                local boxHeight = math.abs(bottomRight.Y - topLeft.Y)
+                
+                data.drawings.box.Position = Vector2.new(screenPos.X - boxWidth / 2, screenPos.Y - boxHeight / 2)
+                data.drawings.box.Size = Vector2.new(boxWidth, boxHeight)
+                data.drawings.box.Visible = true
+                
+                data.drawings.name.Position = Vector2.new(screenPos.X - boxWidth / 2, screenPos.Y - boxHeight / 2 - 20)
+                data.drawings.name.Visible = true
+                
+                if data.humanoid then
+                    local hpPercent = data.humanoid.Health / data.humanoid.MaxHealth
+                    local barWidth = boxWidth * hpPercent
+                    
+                    data.drawings.hp.From = Vector2.new(screenPos.X - boxWidth / 2, screenPos.Y + boxHeight / 2 + 5)
+                    data.drawings.hp.To = Vector2.new(screenPos.X - boxWidth / 2 + barWidth, screenPos.Y + boxHeight / 2 + 5)
+                    
+                    if hpPercent > 0.5 then
+                        data.drawings.hp.Color = Color3.fromRGB(0, 255, 0)
+                    elseif hpPercent > 0.25 then
+                        data.drawings.hp.Color = Color3.fromRGB(255, 255, 0)
+                    else
+                        data.drawings.hp.Color = Color3.fromRGB(255, 0, 0)
+                    end
+                    
+                    data.drawings.hp.Visible = true
+                end
+            else
+                for _, drawing in pairs(data.drawings) do
+                    drawing.Visible = false
+                end
+            end
+        end
+    end
+end
+
+if animalsFolder then
+    while true do
+        local success, err = pcall(function()
+            if animalsFolder and animalsFolder.Parent then
+                for _, animal in pairs(animalsFolder:GetChildren()) do
+                    local animalNameModel = animal:FindFirstChild("Model")
+                    local modelName = animalNameModel and animalNameModel.Name or animal.Name
+                    
+                    if selectedAnimals[modelName] then
+                        if not animalDrawings[animal] then
+                            createAnimalESP(animal)
+                        end
+                    else
+                        if animalDrawings[animal] then
+                            removeAnimalESP(animal)
+                        end
+                    end
+                end
+            end
+            
+            updateESP()
+        end)
+        
+        if not success then
+            warn("Error in main loop: " .. err)
+        end
+        task.wait()
+    end
+end

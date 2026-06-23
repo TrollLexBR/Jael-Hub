@@ -1,1 +1,44 @@
-.
+--!grant RuntimeLoadstring
+--!grant Filesystem
+
+-- Jael Hub Loader
+-- Detects the current game by PlaceId and loads the matching script
+-- from the Jael-Hub repo (RbxCli/Games/<placeId>).
+
+local HttpService = game:GetService("HttpService")
+
+local BASE = "https://raw.githubusercontent.com/TrollLexBR/Jael-Hub/refs/heads/main/RbxCli/Games/"
+
+local function httpGet(url)
+    local ok, res = pcall(function()
+        return HttpService:RequestAsync({ Method = "GET", Url = url })
+    end)
+    if not ok then return nil, tostring(res) end
+    if not res.Success then
+        return nil, ("HTTP %d %s"):format(res.StatusCode, tostring(res.StatusMessage))
+    end
+    return res.Body
+end
+
+local placeId = game.PlaceId
+local url = BASE .. tostring(placeId)
+
+local body, err = httpGet(url)
+if not body then
+    warn(("[Jael Hub] No script for PlaceId %d (%s)"):format(placeId, tostring(err)))
+    return
+end
+
+local fn, loadErr = rbxcli.loadstring(body)
+if not fn then
+    warn("[Jael Hub] Failed to compile script: " .. tostring(loadErr))
+    return
+end
+
+local ok, runErr = pcall(fn)
+if not ok then
+    warn("[Jael Hub] Script error: " .. tostring(runErr))
+    return
+end
+
+print(("[Jael Hub] Loaded script for PlaceId %d"):format(placeId))

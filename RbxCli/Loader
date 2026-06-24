@@ -2,8 +2,10 @@
 --!grant Filesystem
 
 -- Jael Hub Loader
--- Detects the current game by PlaceId and loads the matching script
--- from the Jael-Hub repo (RbxCli/Games/<placeId>).
+-- Detects the current game by UniverseId (game.GameId) so every place in a
+-- multi-place universe loads the same script. Falls back to PlaceId so single
+-- place scripts keep working.
+-- Repo layout: RbxCli/Games/<gameId>  (preferred)  or  RbxCli/Games/<placeId>
 
 local HttpService = game:GetService("HttpService")
 
@@ -20,12 +22,19 @@ local function httpGet(url)
     return res.Body
 end
 
-local placeId = game.PlaceId
-local url = BASE .. tostring(placeId)
+local gameId = game.GameId   -- UniverseId: shared by all places in the game
+local placeId = game.PlaceId  -- unique per place
 
-local body, err = httpGet(url)
+-- Try UniverseId first (one script for the whole game), then PlaceId.
+local body, err
+for _, id in ipairs({ gameId, placeId }) do
+    body, err = httpGet(BASE .. tostring(id))
+    if body then break end
+end
+
 if not body then
-    warn(("[Jael Hub] No script for PlaceId %d (%s)"):format(placeId, tostring(err)))
+    warn(("[Jael Hub] No script for GameId %d / PlaceId %d (%s)")
+        :format(gameId, placeId, tostring(err)))
     return
 end
 
@@ -41,4 +50,4 @@ if not ok then
     return
 end
 
-print(("[Jael Hub] Loaded script for PlaceId %d"):format(placeId))
+print(("[Jael Hub] Loaded script (GameId %d / PlaceId %d)"):format(gameId, placeId))
